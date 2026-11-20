@@ -4,8 +4,8 @@ import { getFaction } from './data/factions'
 import { markRead, collectionReady } from './game/engine'
 import { COLLECTIONS } from './data/content'
 import FactionSelect from './components/FactionSelect'
-import HUD from './components/HUD'
-import { Sidebar, BottomNav, TABS } from './components/Sidebar'
+import Header from './components/Header'
+import { TABS } from './components/tabs.js'
 import { Toast } from './components/ui'
 import { PromotionModal, StoreModal, BankModal, LogModal, SettingsModal, DoctorModal } from './components/Modals'
 import FamilyTab from './components/tabs/FamilyTab'
@@ -39,16 +39,12 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-full pb-20 md:pb-6" style={{ '--accent': f.accent, '--deep': f.deep }}>
-      <HUD s={s} d={d} onOpen={open} />
-      <div className="mx-auto flex max-w-[1400px] gap-4 px-3 pt-4 sm:px-4">
-        <Sidebar tab={tab} setTab={setTab} badges={badges} />
-        <main className="min-w-0 flex-1">
-          <h1 className="h-title mb-3 md:hidden">{TABS.find((t) => t.id === tab).label}</h1>
-          <View s={s} d={d} run={run} />
-        </main>
-      </div>
-      <BottomNav tab={tab} setTab={setTab} badges={badges} />
+    <div className="min-h-full pb-10" style={{ '--accent': f.accent, '--deep': f.deep }}>
+      <Header s={s} d={d} tab={tab} setTab={setTab} onOpen={open} badges={badges} />
+      <main className="mx-auto max-w-[1000px] px-2 pt-3 sm:px-3">
+        <h1 className="mb-2 font-display text-xl font-bold uppercase tracking-wider text-stone-100">{TABS.find((t) => t.id === tab).label}</h1>
+        <View s={s} d={d} run={run} />
+      </main>
 
       <PromotionModal s={s} run={run} />
       <StoreModal open={modal === 'store'} onClose={close} s={s} run={run} />

@@ -19,7 +19,7 @@ export default function FamilyTab({ s, d, run }) {
   const values = { attack: d.attack, defense: d.defense, maxHealth: d.maxHealth, maxEnergy: d.maxEnergy, maxStamina: d.maxStamina }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Showcase */}
       <Section>
         <div className="flex flex-col gap-5 sm:flex-row">
@@ -48,7 +48,7 @@ export default function FamilyTab({ s, d, run }) {
         </div>
       </Section>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-3 lg:grid-cols-2">
         {/* Skill points */}
         <Section title="Skill Points" right={<span className="chip bg-gold/20 text-gold">{s.skillPoints} available</span>}>
           <div className="space-y-2">
@@ -59,7 +59,7 @@ export default function FamilyTab({ s, d, run }) {
                   <div className="text-sm font-semibold text-stone-200">{sk.label} <span className="ml-1 tabular-nums text-stone-400">{fmt(values[sk.id])}</span></div>
                   <div className="text-xs text-stone-500">{sk.cost} SP → {sk.gain}</div>
                 </div>
-                <button className="btn-accent px-3 py-1.5" disabled={s.skillPoints < sk.cost} onClick={() => run(spendSkill, sk.id)}>+</button>
+                <button className="classic-btn px-3 py-1.5" disabled={s.skillPoints < sk.cost} onClick={() => run(spendSkill, sk.id)}>+</button>
               </div>
             ))}
           </div>
@@ -79,7 +79,7 @@ export default function FamilyTab({ s, d, run }) {
             <span className="text-sm text-stone-300">Next recruit: <b className="text-green-400">{money(hireCost(s))}</b></span>
             <div className="ml-auto flex gap-2">
               {[1, 5, 10].map((n) => (
-                <button key={n} className="btn-accent" disabled={s.family >= MAX_FAMILY || s.cash < hireCost(s)} onClick={() => run(hireCrew, n)}>
+                <button key={n} className="classic-btn" disabled={s.family >= MAX_FAMILY || s.cash < hireCost(s)} onClick={() => run(hireCrew, n)}>
                   <UserPlus size={15} /> {n}
                 </button>
               ))}

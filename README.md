@@ -65,4 +65,5 @@ All art slots live in [`src/assetMap.js`](src/assetMap.js) (`factionBanners`, `r
 | `src/data/content.js` | Items, jobs, districts, properties, contraband, signature tiers |
 | `src/game/engine.js` | Pure game logic: formulas, tick, actions, combat, rivals |
 | `src/game/useGame.js` | React reducer, 1s loop, autosave |
-| `src/components/` | HUD, sidebar, avatar, banners, modals, and one file per tab |
+| `src/components/` | Header (title banner, stat strip, tab bar), avatar, banners, modals, one file per tab |
+| `src/art/` | Built-in SVG art: items, contraband, signature weapons, district and property scenes |

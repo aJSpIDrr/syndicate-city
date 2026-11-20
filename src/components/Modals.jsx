@@ -25,7 +25,7 @@ export function PromotionModal({ s, run }) {
         <ArrowRight className="mt-16 text-gold" />
         <RankCard f={f} rank={to} />
       </div>
-      <button className="btn-gold mt-6 w-full" onClick={close}>Claim My Rank</button>
+      <button className="classic-btn classic-btn-gold mt-6 w-full" onClick={close}>Claim My Rank</button>
     </Modal>
   )
 }
@@ -58,9 +58,9 @@ export function StoreModal({ open, onClose, s, run }) {
       <div className="mt-5 rounded-lg border border-dashed border-amber-600/50 bg-amber-950/20 p-3">
         <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-amber-300"><FlaskConical size={16} /> Dev Test Tools</div>
         <div className="flex flex-wrap gap-2">
-          <button className="btn-ghost" onClick={() => run(devLevels, 5)}>+5 Levels</button>
-          <button className="btn-ghost" onClick={() => run(devGold, 50)}>+50 Gold</button>
-          <button className="btn-ghost" onClick={() => run(devCash, 100000)}>+$100,000</button>
+          <button className="classic-btn-dark" onClick={() => run(devLevels, 5)}>+5 Levels</button>
+          <button className="classic-btn-dark" onClick={() => run(devGold, 50)}>+50 Gold</button>
+          <button className="classic-btn-dark" onClick={() => run(devCash, 100000)}>+$100,000</button>
         </div>
       </div>
     </Modal>
@@ -72,7 +72,7 @@ function StoreRow({ icon: Icon, color, title, desc, price, disabled, onClick }) 
     <div className="flex items-center gap-3 rounded-lg border border-line bg-black/20 p-3">
       <Icon color={color} />
       <div className="flex-1"><div className="font-semibold text-stone-100">{title}</div><div className="text-xs text-stone-400">{desc}</div></div>
-      <button className="btn-gold" disabled={disabled} onClick={onClick}>{price} <Coins size={14} /></button>
+      <button className="classic-btn classic-btn-gold" disabled={disabled} onClick={onClick}>{price} <Coins size={14} /></button>
     </div>
   )
 }
@@ -97,10 +97,10 @@ export function BankModal({ open, onClose, s, d, run }) {
       />
       {n > 0 && <div className="mt-1 text-xs text-stone-500">Depositing {money(Math.min(n, s.cash))} banks {money(Math.min(n, s.cash) - fee)} after a {money(fee)} fee.</div>}
       <div className="mt-3 grid grid-cols-2 gap-2">
-        <button className="btn-gold" disabled={n <= 0 || s.cash <= 0} onClick={() => { run(deposit, n); setAmt('') }}>Deposit</button>
-        <button className="btn-ghost" disabled={n <= 0 || s.bank <= 0} onClick={() => { run(withdraw, n); setAmt('') }}>Withdraw</button>
-        <button className="btn-gold" disabled={s.cash <= 0} onClick={() => run(deposit, s.cash)}>Deposit All</button>
-        <button className="btn-ghost" disabled={s.bank <= 0} onClick={() => run(withdraw, s.bank)}>Withdraw All</button>
+        <button className="classic-btn classic-btn-gold" disabled={n <= 0 || s.cash <= 0} onClick={() => { run(deposit, n); setAmt('') }}>Deposit</button>
+        <button className="classic-btn-dark" disabled={n <= 0 || s.bank <= 0} onClick={() => { run(withdraw, n); setAmt('') }}>Withdraw</button>
+        <button className="classic-btn classic-btn-gold" disabled={s.cash <= 0} onClick={() => run(deposit, s.cash)}>Deposit All</button>
+        <button className="classic-btn-dark" disabled={s.bank <= 0} onClick={() => run(withdraw, s.bank)}>Withdraw All</button>
       </div>
     </Modal>
   )
@@ -114,7 +114,7 @@ export function DoctorModal({ open, onClose, s, d, run }) {
         <Stethoscope className="mt-1 text-red-300" />
         <p className="text-sm text-stone-300">"Cash up front, no questions asked." Restores you to full health ({s.health} → {d.maxHealth}).</p>
       </div>
-      <button className="btn-gold mt-4 w-full" disabled={s.cash < cost || s.health >= d.maxHealth} onClick={() => { run(healAtDoctor); onClose() }}>
+      <button className="classic-btn classic-btn-gold mt-4 w-full" disabled={s.cash < cost || s.health >= d.maxHealth} onClick={() => { run(healAtDoctor); onClose() }}>
         Pay {money(cost)}
       </button>
       <p className="mt-2 text-xs text-stone-500">Or wait: health regenerates on its own over time.</p>
@@ -157,10 +157,10 @@ export function SettingsModal({ open, onClose, s, onReset }) {
         {confirm ? (
           <div className="mt-3 flex gap-2">
             <button className="btn bg-red-600 text-white hover:bg-red-500" onClick={() => { setConfirm(false); onReset() }}>Yes, delete everything</button>
-            <button className="btn-ghost" onClick={() => setConfirm(false)}>Cancel</button>
+            <button className="classic-btn-dark" onClick={() => setConfirm(false)}>Cancel</button>
           </div>
         ) : (
-          <button className="btn-ghost mt-3 border-red-900 text-red-300" onClick={() => setConfirm(true)}>Reset Save…</button>
+          <button className="classic-btn-dark mt-3 border-red-900 text-red-300" onClick={() => setConfirm(true)}>Reset Save…</button>
         )}
       </div>
     </Modal>

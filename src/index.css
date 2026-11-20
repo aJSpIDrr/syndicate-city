@@ -24,3 +24,32 @@ body { background: #121417; color: #E6E2D6; font-family: Inter, system-ui, sans-
 .animate-pop { animation: pop .25s ease-out; }
 @keyframes shine { 0% { background-position: -200% 0 } 100% { background-position: 200% 0 } }
 .gold-shine { background: linear-gradient(90deg, #8a6d1f, #f5d77a, #D4AF37, #8a6d1f); background-size: 200% 100%; animation: shine 3s linear infinite; -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* ---------- Classic browser-RPG skin ---------- */
+@layer components {
+  .classic-btn {
+    @apply inline-flex items-center justify-center gap-1 rounded px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-ink transition active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 70%, white) 0%, var(--accent) 45%, color-mix(in srgb, var(--accent) 70%, black) 100%);
+    border: 1px solid color-mix(in srgb, var(--accent) 50%, black);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 1px 2px rgba(0,0,0,.6);
+    text-shadow: 0 1px 0 rgba(255,255,255,.25);
+  }
+  .classic-btn-gold { --accent: #D4AF37; }
+  .classic-btn-dark {
+    @apply inline-flex items-center justify-center gap-1 rounded px-2.5 py-1.5 text-xs font-bold uppercase tracking-wide text-stone-200 transition active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40;
+    background: linear-gradient(180deg, #3A3F47, #23272D);
+    border: 1px solid #0E1013;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+  }
+  .box { @apply overflow-hidden rounded-md border border-[#3A3226] bg-[#16181C] shadow-lg; }
+  .box-head {
+    @apply flex items-center justify-between gap-2 px-3 py-1.5 font-display text-sm font-bold uppercase tracking-wider text-stone-100;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--deep) 75%, #000) 0%, #0E0F12 100%);
+    border-bottom: 2px solid var(--accent);
+  }
+  .row { @apply flex items-center gap-3 border-b border-[#24272D] px-3 py-2 text-[13px]; }
+  .row:nth-child(even) { background: rgba(255,255,255,.025); }
+  .row:last-child { @apply border-b-0; }
+  .k { @apply text-[11px] font-bold uppercase text-stone-500; }
+}
+body { font-size: 13px; }

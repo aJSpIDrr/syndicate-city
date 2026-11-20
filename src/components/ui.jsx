@@ -87,16 +87,16 @@ export function RarityTag({ rarity }) {
   return <span className="chip" style={{ background: `${r.color}22`, color: r.color }}>{r.label}</span>
 }
 
-export function Section({ title, right, children, className = '' }) {
+export function Section({ title, right, children, className = '', flush = false }) {
   return (
-    <section className={`panel p-4 sm:p-5 ${className}`}>
+    <section className={`box ${className}`}>
       {(title || right) && (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          {title && <h3 className="font-display text-lg font-bold text-stone-100">{title}</h3>}
-          {right}
+        <div className="box-head flex-wrap">
+          {title && <h3>{title}</h3>}
+          <div className="font-sans normal-case tracking-normal">{right}</div>
         </div>
       )}
-      {children}
+      <div className={flush ? '' : 'p-3'}>{children}</div>
     </section>
   )
 }

@@ -11,7 +11,7 @@ const pct = (v) => `${Math.round(v * 100)}%`
 export default function ArsenalTab({ s, d, run }) {
   const [sub, setSub] = useState('forge')
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="inline-flex rounded-lg border border-line bg-black/30 p-1">
         {[['forge', 'Signature Weapon Forge'], ['shop', 'Black Market Shop']].map(([id, label]) => (
           <button key={id} onClick={() => setSub(id)} className={`rounded-md px-3 py-1.5 text-sm font-semibold ${sub === id ? 'text-ink' : 'text-stone-300'}`} style={sub === id ? { background: 'var(--accent)' } : undefined}>
@@ -55,7 +55,7 @@ function Forge({ s, d, run }) {
                   {next.crit > cur.crit && `, ${pct(next.crit)} Crit`}{next.pen > cur.pen && `, ${pct(next.pen)} Armor Pen`}{next.cash > cur.cash && `, +${pct(next.cash)} Cash Stolen`}
                 </div>
                 <div className="mt-1 text-xs text-stone-500">Requires Level {next.level} · {next.gold} Gold Bars (you have {s.gold})</div>
-                <button className="btn-gold mt-3" disabled={s.gold < next.gold || s.level < next.level} onClick={() => run(upgradeSignature)}>
+                <button className="classic-btn classic-btn-gold mt-3" disabled={s.gold < next.gold || s.level < next.level} onClick={() => run(upgradeSignature)}>
                   <Hammer size={15} /> Upgrade with Gold ({next.gold} <Coins size={14} />)
                 </button>
               </div>
@@ -87,31 +87,44 @@ function Shop({ s, d, run }) {
   const bonus = cat === 'weapon' ? d.perks.weapon : cat === 'vehicle' ? d.perks.vehicle : 0
   return (
     <Section
+      flush
       title="Black Market"
       right={
         <div className="flex gap-1">
           {[['weapon', 'Weapons'], ['armor', 'Armor'], ['vehicle', 'Vehicles']].map(([id, label]) => (
-            <button key={id} onClick={() => setCat(id)} className={`rounded-md border px-2.5 py-1 text-xs font-semibold ${cat === id ? 'border-transparent text-ink' : 'border-line text-stone-300'}`} style={cat === id ? { background: 'var(--accent)' } : undefined}>{label}</button>
+            <button key={id} onClick={() => setCat(id)} className={cat === id ? 'classic-btn' : 'classic-btn-dark'}>{label}</button>
           ))}
         </div>
       }
     >
-      {bonus > 0 && <p className="mb-3 text-xs" style={{ color: 'var(--accent)' }}>Faction perk: +{Math.round(bonus * 100)}% {cat} stats in combat</p>}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+      {bonus > 0 && <p className="border-b border-[#24272D] px-3 py-1.5 text-[11px]" style={{ color: 'var(--accent)' }}>Faction perk: +{Math.round(bonus * 100)}% {cat} stats in combat</p>}
+      <div className="row hidden bg-black/40 py-1 sm:flex">
+        <span className="k w-16" /><span className="k flex-1">Item</span><span className="k w-24 text-center">Stats</span><span className="k w-16 text-center">Owned</span><span className="k w-[210px] text-right">Price</span>
+      </div>
+      <div>
         {items.map((item) => {
           const owned = s.inventory[item.id] || 0
           const color = RARITY[item.rarity].color
           return (
-            <div key={item.id} className="flex flex-col rounded-xl border-2 bg-black/25 p-3" style={{ borderColor: `${color}88` }}>
-              <div className="mx-auto h-24 w-24"><ItemArt kind="item" id={item.id} category={item.category} rarity={item.rarity} size={96} /></div>
-              <div className="mt-2 text-sm font-semibold leading-tight text-stone-100">{item.name}</div>
-              <div className="mt-1 flex items-center justify-between"><RarityTag rarity={item.rarity} /><span className="text-xs text-stone-400">x{fmt(owned)}</span></div>
-              <div className="mt-1.5 text-xs text-stone-300"><span className="text-red-300">+{item.atk} Atk</span> · <span className="text-blue-300">+{item.def} Def</span></div>
-              <div className="text-[11px] text-stone-500">{item.upkeep ? `Upkeep ${money(item.upkeep)}/hr` : 'No upkeep'}</div>
-              <div className="mt-auto flex gap-1.5 pt-2">
-                <button className="btn-accent flex-1 px-2 py-1.5 text-xs" disabled={s.cash < item.price} onClick={() => run(buyItem, item.id, 1)}>{money(item.price)}</button>
-                <button className="btn-ghost px-2 py-1.5 text-xs" disabled={s.cash < item.price * 5} onClick={() => run(buyItem, item.id, 5)} title="Buy 5">x5</button>
-                <button className="btn-ghost px-2 py-1.5 text-xs" disabled={owned < 1} onClick={() => run(sellItem, item.id, 1)} title={`Sell for ${money(item.price / 2)}`}>Sell</button>
+            <div key={item.id} className="row flex-wrap sm:flex-nowrap">
+              <div className="h-16 w-16 shrink-0 rounded border-2 bg-black/40" style={{ borderColor: `${color}AA` }}>
+                <ItemArt kind="item" id={item.id} category={item.category} rarity={item.rarity} size={60} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-bold text-stone-100">{item.name}</div>
+                <RarityTag rarity={item.rarity} />
+                <div className="text-[11px] text-stone-500">{item.upkeep ? `Upkeep ${money(item.upkeep)}/hr` : 'No upkeep'}</div>
+              </div>
+              <div className="w-24 shrink-0 text-center text-[12px]">
+                <div className="font-bold text-red-300">{item.atk} Atk</div>
+                <div className="font-bold text-blue-300">{item.def} Def</div>
+              </div>
+              <div className="w-16 shrink-0 text-center font-bold text-stone-200">x{fmt(owned)}</div>
+              <div className="flex w-full shrink-0 items-center justify-end gap-1 sm:w-[210px]">
+                <span className="mr-1 font-bold text-green-400">{money(item.price)}</span>
+                <button className="classic-btn" disabled={s.cash < item.price} onClick={() => run(buyItem, item.id, 1)}>Buy</button>
+                <button className="classic-btn-dark" disabled={s.cash < item.price * 5} onClick={() => run(buyItem, item.id, 5)} title="Buy 5">x5</button>
+                <button className="classic-btn-dark" disabled={owned < 1} onClick={() => run(sellItem, item.id, 1)} title={`Sell for ${money(item.price / 2)}`}>Sell</button>
               </div>
             </div>
           )

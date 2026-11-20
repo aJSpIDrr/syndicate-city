@@ -5,10 +5,10 @@ import { Section, ItemArt } from '../ui'
 
 export default function VaultTab({ s, run }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <Section
         title="Contraband"
-        right={<button className="btn-gold px-3 py-1.5 text-xs" disabled={s.gold < GOLD_PRICES.crate} onClick={() => run(openCrate)}><Package size={14} /> Open Crate · {GOLD_PRICES.crate} <Coins size={12} /></button>}
+        right={<button className="classic-btn classic-btn-gold px-3 py-1.5 text-xs" disabled={s.gold < GOLD_PRICES.crate} onClick={() => run(openCrate)}><Package size={14} /> Open Crate · {GOLD_PRICES.crate} <Coins size={12} /></button>}
       >
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {CONTRABAND.map((c) => {
@@ -49,7 +49,7 @@ export default function VaultTab({ s, run }) {
                     )
                   })}
                 </ul>
-                <button className="btn-accent w-full" disabled={!ready} onClick={() => run(vaultCollection, col.id)}>Vault Set for Bonus</button>
+                <button className="classic-btn w-full" disabled={!ready} onClick={() => run(vaultCollection, col.id)}>Vault Set for Bonus</button>
                 {times > 0 && <div className="mt-1 text-center text-xs text-stone-500">Vaulted {times}x</div>}
               </div>
             )
