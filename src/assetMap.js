@@ -25,8 +25,8 @@ export const ASSET_MAP = {
 
 // Roster art cut from the Drive atlases (public/art/<faction>/rank-NN.jpg, weapon-NN.jpg)
 const fill = (faction, kind, slot) => { for (let i = 1; i <= 10; i++) slot[faction][i] = `./art/${faction}/${kind}-${String(i).padStart(2, '0')}.jpg` }
-for (const f of ['syndicate', 'firm', 'triad']) fill(f, 'rank', ASSET_MAP.rankAvatars)
-for (const f of ['syndicate', 'firm']) fill(f, 'weapon', ASSET_MAP.signatureWeaponTiers)
+for (const f of ['families', 'syndicate', 'firm', 'triad']) fill(f, 'rank', ASSET_MAP.rankAvatars)
+for (const f of ['families', 'syndicate', 'firm']) fill(f, 'weapon', ASSET_MAP.signatureWeaponTiers)
 fill('triad', 'blade', ASSET_MAP.signatureWeaponTiers) // cleaver Mk I–V, butterfly knife Mk VI–X
 
 export const sigWeaponUrl = (factionId, tier) => ASSET_MAP.signatureWeaponTiers[factionId]?.[tier] || ASSET_MAP.signatureWeapons[factionId] || null
