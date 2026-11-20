@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+html, body, #root { height: 100%; }
+body { background: #121417; color: #E6E2D6; font-family: Inter, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+
+@layer components {
+  .panel { @apply bg-panel border border-line rounded-xl; }
+  .btn { @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100; }
+  .btn-gold { @apply btn bg-gold text-ink hover:brightness-110; }
+  .btn-accent { @apply btn text-ink hover:brightness-110; background: var(--accent); }
+  .btn-ghost { @apply btn border border-line text-stone-200 hover:bg-white/5; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold; }
+  .h-title { @apply font-display text-2xl font-bold text-stone-100 tracking-wide; }
+  .label { @apply text-[11px] uppercase tracking-widest text-stone-400 font-semibold; }
+}
+
+.rivets { background-image: radial-gradient(circle at 10px 10px, rgba(176,141,87,.35) 1.5px, transparent 2px), radial-gradient(circle at calc(100% - 10px) 10px, rgba(176,141,87,.35) 1.5px, transparent 2px); }
+.noir-grain { background-image: radial-gradient(ellipse at top, rgba(255,255,255,.04), transparent 60%); }
+
+@keyframes pop { 0% { transform: scale(.85); opacity: 0 } 100% { transform: scale(1); opacity: 1 } }
+.animate-pop { animation: pop .25s ease-out; }
+@keyframes shine { 0% { background-position: -200% 0 } 100% { background-position: 200% 0 } }
+.gold-shine { background: linear-gradient(90deg, #8a6d1f, #f5d77a, #D4AF37, #8a6d1f); background-size: 200% 100%; animation: shine 3s linear infinite; -webkit-background-clip: text; background-clip: text; color: transparent; }
