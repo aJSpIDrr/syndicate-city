@@ -11,7 +11,17 @@ npm install
 npm run dev
 ```
 
-Then open the URL Vite prints (usually http://localhost:5173). `npm run build` makes a static build in `dist/` that you can host anywhere, including GitHub Pages.
+Then open the URL Vite prints (usually http://localhost:5173). `npm run build` makes a static build in `dist/`.
+
+## Publish on GitHub Pages
+
+`.github/workflows/deploy.yml` builds and deploys on every push to `main`. One-time setup:
+
+1. Pages on a **private** repo needs GitHub Pro. Otherwise make the repo public (Settings → General → Danger Zone → Change visibility).
+2. Settings → Pages → Build and deployment → Source: **GitHub Actions**.
+3. Re-run the latest "Deploy to GitHub Pages" run (Actions tab) or push any commit.
+
+The game will then be live at `https://ajspidrr.github.io/syndicate-city/`.
 
 ## What's in
 
@@ -19,7 +29,7 @@ Then open the URL Vite prints (usually http://localhost:5173). `npm run build` m
 - **10-tier rank ladders** per faction (levels 1, 5, 10 … 40, 50) with scaling perks, evolving SVG portraits, and frame tiers (Iron → Steel → Enamel → Gold & Diamond). A promotion modal compares old and new rank.
 - **Meters** on a 1-second tick: Energy (180s), Stamina (300s), Health (+2/180s), each sped up by faction perks. Offline time is applied on load.
 - **Jobs**: 8 districts and 24 jobs (the 8 from the GDD plus 16 more), item and family requirements, loot and contraband drops, and Bronze/Silver/Gold mastery (+3 Gold plus a stat bonus each).
-- **Leveling**: XP = ⌊50 × L^1.65⌋. Each level gives +2 Gold and 5 Skill Points, and refills your meters.
+- **Leveling**: XP = ⌊30 × L^1.35⌋ (retuned from the GDD's 50 × L^1.65, see Balance). Each level gives +2 Gold and 5 Skill Points, and refills your meters. Each rank promotion pays 5 × the new rank number in Gold.
 - **Family**: recruit up to 500 crew. Combat follows the GDD formula: the boss uses the signature weapon, and the crew uses your best N−1 weapons plus N armor and N vehicles.
 - **Arsenal**: a signature weapon forge (Mk. I → Mk. X with Gold: crit, armor pen, cash-stolen passives) and a Black Market with all 25 GDD items, including upkeep.
 - **Real Estate**: 6 properties, price ×1.15 per property owned, hourly income net of gear upkeep (holds up to 24h).
@@ -28,6 +38,20 @@ Then open the URL Vite prints (usually http://localhost:5173). `npm run build` m
 - **Contraband Vault**: 3 collection sets with permanent bonuses, plus Gold crates.
 - **Gold Store** with dev test tools (+5 Levels, +50 Gold, +$100k).
 - Saves to `localStorage`. Reset is under Settings.
+
+## Balance
+
+All tuning numbers that differ from the GDD are in `BALANCE` at the top of [`src/game/engine.js`](src/game/engine.js). `npm run sim -- <faction> <hours> <checkInMinutes>` runs a greedy bot through the real engine and prints hours-to-level and PvP win rates per level band, e.g. `npm run sim -- yakuza 336 10`.
+
+Current pacing for a bot that spends all its energy every 10 minutes: Level 10 ≈ 2h, Level 20 ≈ 16h, Level 30 ≈ 45h, Level 50 ≈ 130–190h. A player checking in a few times a day is several times slower. Changes from the GDD:
+
+| Knob | GDD | Now | Why |
+| --- | --- | --- | --- |
+| XP curve | 50 × L^1.65 | 30 × L^1.35 | With 20 energy/hr, the GDD curve put Level 10 at ~13h and made jobs nearly pointless |
+| PvP win XP | 10 + 2 × level | 4 + level | Fights were giving ~13× more XP per point than jobs |
+| Rival strength | — | sublinear in level | PvP win rate lands around 65% early and 70–90% mid/late against the easiest of 6 rivals |
+| Promotion Gold | — | 5 × rank | Mk. X costs 762 Gold; free players reached only ~370 by Level 75 |
+| Collection vault | — | +5 Gold | Same reason |
 
 ## Adding art
 

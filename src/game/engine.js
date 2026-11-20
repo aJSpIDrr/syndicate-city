@@ -1,8 +1,8 @@
 // Pure game logic. Every action takes a state, returns a new state (never mutates input).
-import { FACTIONS, getFaction, rankIndexForLevel, RIVAL_NAMES } from '../data/factions'
+import { FACTIONS, getFaction, rankIndexForLevel, RIVAL_NAMES } from '../data/factions.js'
 import {
   ITEMS, getItem, SIG_TIERS, JOBS, DISTRICTS, PROPERTIES, CONTRABAND, COLLECTIONS, MASTERY_REWARD, getContraband,
-} from '../data/content'
+} from '../data/content.js'
 
 export const SAVE_KEY = 'syndicate-city-save-v1'
 export const SAVE_VERSION = 1
@@ -22,7 +22,18 @@ const clone = (s) => structuredClone(s)
 export const fmt = (n) => Math.floor(n).toLocaleString('en-US')
 export const money = (n) => '$' + fmt(n)
 
-export const xpForNext = (level) => Math.floor(50 * Math.pow(level, 1.65))
+// ---- Balance knobs (tune with `npm run sim`) ----
+export const BALANCE = {
+  xpBase: 30, xpExp: 1.35, // XP to next level = floor(xpBase * L^xpExp). GDD original: 50 * L^1.65
+  pvpXpBase: 4, pvpXpPerLevel: 1, // XP per PvP win. GDD original: 10 + 2 * level
+  rivalGearAtk: [1, 4.2, 0.68], rivalGearDef: [1, 4, 0.68], // rival per-crew-member gear: a + b * level^c
+  rivalMult: [0.8, 1.2], // rival strength spread
+  raidEverySecs: 1500, // average seconds between rival raids while playing
+  raidMaxOffline: 2,
+  promotionGoldPerRank: 5, // Gold on promotion = 5 x new rank number (not in GDD; makes Mk. X reachable without buying Gold)
+  collectionGold: 5,
+}
+export const xpForNext = (level) => Math.floor(BALANCE.xpBase * Math.pow(level, BALANCE.xpExp))
 
 function log(s, text, kind = 'info') {
   s.log.unshift({ id: Date.now() + Math.random(), t: Date.now(), text, kind })
@@ -182,8 +193,10 @@ export function tick(state, now = Date.now()) {
   const cap = Math.max(0, d.grossIncome * INCOME_CAP_HOURS)
   s.pendingIncome = clamp(s.pendingIncome + (d.netIncome * dt) / 3600, 0, cap)
 
-  // Asynchronous rival raids: ~1 every 12 minutes of play; at most 3 while offline.
-  const raids = dt > 5 ? Math.min(3, Math.floor(dt / 720 * Math.random() * 2)) : (Math.random() < dt / 720 ? 1 : 0)
+  // Asynchronous rival raids on unbanked cash.
+  const raids = dt > 5
+    ? Math.min(BALANCE.raidMaxOffline, Math.floor((dt / BALANCE.raidEverySecs) * Math.random() * 2))
+    : (Math.random() < dt / BALANCE.raidEverySecs ? 1 : 0)
   for (let i = 0; i < raids; i++) incomingRaid(s, d)
 
   // Refresh the rival board every 10 minutes.
@@ -193,7 +206,7 @@ export function tick(state, now = Date.now()) {
 
 function incomingRaid(s, d) {
   if (s.health < HOSPITAL_THRESHOLD || s.level < 2) return
-  const r = makeRival(s, 0.75, 1.2)
+  const r = makeRival(s, BALANCE.rivalMult[0] - 0.1, BALANCE.rivalMult[1] - 0.1)
   const theirAtk = r.atk * rand(0.85, 1.15)
   const myDef = d.pDef * rand(0.85, 1.15)
   const f = getFaction(r.factionId)
@@ -243,9 +256,12 @@ function afterLevel(s, startRank) {
   const newRank = rankOf(s)
   log(s, `Level up! You reached Level ${s.level}. +2 Gold Bars, +5 Skill Points, meters refilled.`, 'level')
   if (newRank > startRank) {
-    s.promotion = { from: startRank, to: newRank }
+    let bonus = 0
+    for (let r = startRank + 1; r <= newRank; r++) bonus += BALANCE.promotionGoldPerRank * (r + 1)
+    s.gold += bonus
+    s.promotion = { from: startRank, to: newRank, gold: bonus }
     const f = getFaction(s.factionId)
-    log(s, `RANK PROMOTION: You are now ${f.ranks[newRank].title} of ${f.name}.`, 'level')
+    log(s, `RANK PROMOTION: You are now ${f.ranks[newRank].title} of ${f.name}. +${bonus} Gold Bars.`, 'level')
   }
   toast(s, `Level ${s.level}!`, 'level')
 }
@@ -480,7 +496,8 @@ export function vaultCollection(state, id) {
   })
   for (const [k, v] of Object.entries(col.reward)) s.bonus[k] += v
   s.collections[id] = (s.collections[id] || 0) + 1
-  toast(s, `${col.name} vaulted! ${col.rewardText}`, 'level')
+  s.gold += BALANCE.collectionGold
+  toast(s, `${col.name} vaulted! ${col.rewardText}, +${BALANCE.collectionGold} Gold`, 'level')
   log(s, `Vaulted the ${col.name}: ${col.rewardText}.`, 'win')
   return s
 }
@@ -498,13 +515,14 @@ function rivalName(factionId) {
 }
 
 // Rival power models a "typical" boss of that level & family size, so gear and crew choices matter.
-export function makeRival(s, lo = 0.8, hi = 1.15) {
+export function makeRival(s, lo = BALANCE.rivalMult[0], hi = BALANCE.rivalMult[1]) {
   const factionId = pick(FACTIONS).id
   const level = Math.max(1, s.level + randInt(-3, 3))
   const family = clamp(Math.round(s.family * rand(0.6, 1.3)) + randInt(-1, 2), 1, MAX_FAMILY)
   const sig = sigAtkForLevel(level)
-  const perMemberAtk = 4 + level * 1.9
-  const perMemberDef = 4 + level * 1.7
+  const gear = ([a, b, c]) => a + b * Math.pow(level, c)
+  const perMemberAtk = gear(BALANCE.rivalGearAtk)
+  const perMemberDef = gear(BALANCE.rivalGearDef)
   const baseStat = 5 + level * 2
   const mult = rand(lo, hi)
   const atk = Math.round((baseStat * 1.5 + sig.atk + (family - 1) * perMemberAtk) * mult)
@@ -551,7 +569,7 @@ export function attackRival(state, rivalId) {
   if (finalAtk > finalDef) {
     const pct = rand(0.10, 0.15) * (1 + (pk.pvpCash || 0) + d.sig.cash)
     const stolen = Math.floor(r.cash * pct)
-    const xp = 10 + r.level * 2
+    const xp = BALANCE.pvpXpBase + r.level * BALANCE.pvpXpPerLevel
     const dealt = randInt(15, 30), taken = randInt(5, 12)
     r.cash -= stolen
     r.health = Math.max(0, r.health - dealt)

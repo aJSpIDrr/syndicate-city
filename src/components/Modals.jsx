@@ -17,7 +17,8 @@ export function PromotionModal({ s, run }) {
       <div className="text-center">
         <div className="label" style={{ color: f.accent }}>{f.name} · Level {RANK_LEVELS[to]}{to === 9 ? '+' : ''}</div>
         <h3 className="mt-1 font-display text-3xl font-extrabold gold-shine">{f.ranks[to].title}</h3>
-        <p className="mt-1 text-sm text-stone-400">{f.mentor}: "You've earned this. The streets will remember the name {s.bossName}."</p>
+        {s.promotion.gold > 0 && <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-gold/15 px-3 py-1 text-sm font-bold text-gold"><Coins size={14} /> +{s.promotion.gold} Gold Bars</div>}
+        <p className="mt-2 text-sm text-stone-400">{f.mentor}: "You've earned this. The streets will remember the name {s.bossName}."</p>
       </div>
       <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-start gap-3">
         <RankCard f={f} rank={from} dim />

@@ -34,7 +34,7 @@ export default function VaultTab({ s, run }) {
             return (
               <div key={col.id} className="rounded-xl border border-line bg-black/20 p-4">
                 <div className="font-semibold text-stone-100">{col.name}</div>
-                <div className="text-sm text-gold">Reward: {col.rewardText}</div>
+                <div className="text-sm text-gold">Reward: {col.rewardText}, +5 Gold</div>
                 <ul className="my-3 space-y-1.5">
                   {col.parts.map((p) => {
                     const isItem = p.startsWith('item:')
