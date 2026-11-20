@@ -1,6 +1,8 @@
 # Syndicate City — Art Still Needed
 
-Done so far: rank portraits and signature weapon tiers for **The Syndicate** and **The Firm**, rank portraits for **The Triad**.
+Done so far: rank portraits and signature weapon tiers for **The Syndicate** (R4 Assault Rifle), **The Firm** (Walther PPK) and **The Triad** (Dragon Cleaver → Dragon Butterfly Knife).
+
+Weapon names in the game follow the art. If a sheet shows a different weapon than listed here, the game is renamed to match.
 
 ## Delivery tips
 - Grids (atlases) like your current ones are perfect: uniform cells, dark gutters between them, one row per set of 5.
@@ -11,13 +13,12 @@ Done so far: rank portraits and signature weapon tiers for **The Syndicate** and
 ## Priority 1 — finish the factions
 | Art | Count | Size each | Shape | Notes |
 | --- | --- | --- | --- | --- |
-| Five Families rank portraits | 10 | 512×512 | Square | Outsider → Godfather (NYC, 1930s–50s) |
+| Five Families rank portraits | 10 | 512×512 | Square | Outsider → Godfather (NYC, 1930s–50s). **"Noir Mobsters and Thompson Arsenal.png" is still 32MB — save as JPG under 10MB** |
 | Yakuza rank portraits | 10 | 512×512 | Square | Shatei → Kumichō (Tokyo neon) |
 | Sinaloa rank portraits | 10 | 512×512 | Square | Halcón → El Jefe Supremo |
 | Thompson SMG tiers | 10 | 512×256 | 2:1 wide | Mk I plain → Mk X mythic |
 | Katana tiers | 10 | 512×256 | 2:1 wide | |
 | Gold Desert AK-47 tiers | 10 | 512×256 | 2:1 wide | |
-| Type 59 pistol tiers | 10 | 512×256 | 2:1 wide | **Or** keep your Triad cleaver/butterfly-knife art and rename the weapon (tell me which) |
 
 ## Priority 2 — screens
 | Art | Count | Size each | Shape | Used on |

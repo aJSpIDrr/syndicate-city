@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Coins, Hammer } from 'lucide-react'
-import { getFaction } from '../../data/factions'
+import { getFaction, weaponName } from '../../data/factions'
 import { ITEMS, SIG_TIERS, RARITY } from '../../data/content'
 import { upgradeSignature, buyItem, sellItem, money, fmt } from '../../game/engine'
 import { Section, ItemArt, RarityTag } from '../ui'
@@ -40,7 +40,7 @@ function Forge({ s, d, run }) {
           </div>
           <div className="min-w-0 flex-1">
             <span className="chip bg-gold text-ink">FACTION EXCLUSIVE</span>
-            <h2 className="h-title mt-1">{cur.prefix} {f.weapon}</h2>
+            <h2 className="h-title mt-1">{cur.prefix} {weaponName(f, s.sigTier)}</h2>
             <div className="text-sm text-stone-400">{f.weaponDesc} · bound to {s.bossName}</div>
             <div className="mt-3 flex flex-wrap gap-2 text-sm">
               <span className="chip bg-red-500/15 text-red-300">+{cur.atk} Atk</span>

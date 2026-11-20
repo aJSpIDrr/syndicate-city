@@ -1,5 +1,5 @@
 import { Lock, Swords, Shield, Heart, Zap, Grab, UserPlus } from 'lucide-react'
-import { getFaction, formatPerk, RANK_LEVELS } from '../../data/factions'
+import { getFaction, formatPerk, RANK_LEVELS, weaponName } from '../../data/factions'
 import { hireCost, spendSkill, hireCrew, money, fmt, MAX_FAMILY } from '../../game/engine'
 import Avatar, { frameTier } from '../Avatar'
 import { Section, Stat } from '../ui'
@@ -68,7 +68,7 @@ export default function FamilyTab({ s, d, run }) {
         {/* Crew */}
         <Section title="Recruit Crew">
           <p className="mb-3 text-sm text-stone-400">
-            Each crew member carries one of your best weapons and every member uses an armor and vehicle. Your Boss always wields the {f.weapon}.
+            Each crew member carries one of your best weapons and every member uses an armor and vehicle. Your Boss always wields the {weaponName(f, s.sigTier)}.
           </p>
           <div className="mb-3 grid grid-cols-3 gap-2">
             <Stat label="Weapons in use" value={`${d.equipped.weapons}/${s.family - 1}`} />

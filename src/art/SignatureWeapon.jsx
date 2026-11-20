@@ -28,7 +28,7 @@ const W = {
       {f.engraved && <Engrave d="M40 28 q6 -3 12 0 t12 0 M10 33 q8 -3 20 -1" />}
     </g>
   ),
-  firm: (u, f) => ( // Silenced Walther PPK
+  firm: (u, f) => ( // Walther PPK (fallback; roster art used when present)
     <g>
       <rect x="84" y="24" width="38" height="9" rx="4.5" fill={m(u, 'black')} />
       {[90, 98, 106, 114].map((x) => <line key={x} x1={x} y1="24.5" x2={x} y2="32.5" stroke="#000" strokeOpacity=".6" />)}
@@ -53,7 +53,7 @@ const W = {
       {f.engraved && <Engrave d="M60 31 q10 -2 20 -1 t20 -1" />}
     </g>
   ),
-  triad: (u, f) => ( // Type 59 pistol
+  triad: (u, f) => ( // Triad fallback (roster art: Dragon Cleaver / Butterfly Knife)
     <g>
       <path d="M36 22 H104 Q108 22 108 26 V34 H36 Z" fill={m(u, f.body)} />
       {[84, 88, 92, 96].map((x) => <line key={x} x1={x} y1="23" x2={x} y2="33" stroke="#000" strokeOpacity=".5" />)}

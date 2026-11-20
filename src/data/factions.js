@@ -69,8 +69,8 @@ export const FACTIONS = [
     vibe: 'East End gangsters, smoky pubs, bare-knuckle boxing rings, tailored Savile Row coats, and covert operations.',
     deep: '#333533',
     accent: '#C8272D',
-    weapon: 'Silenced Walther PPK',
-    weaponDesc: 'Suppressed Pistol',
+    weapon: 'Walther PPK',
+    weaponDesc: 'Pocket Pistol',
     specialty: 'Lower Bank Fees, PvP Cash Stolen & Defense',
     enamel: '#A4161A',
     style: { hats: ['flatcap', 'none', 'none', 'flatcap', 'none', 'none', 'none', 'none', 'none', 'none'], scar: 2, tie: 5, suit: 5, pinstripe: 6, glasses: 99, cigar: 99, ring: 9, grey: 99 },
@@ -123,8 +123,10 @@ export const FACTIONS = [
     vibe: 'Harbor smuggling, underground gambling dens, counterfeit rings, and sprawling real estate empires.',
     deep: '#007F5F',
     accent: '#FFD700',
-    weapon: 'Type 59 Pistol',
-    weaponDesc: 'Compact Sidearm',
+    weapon: 'Dragon Cleaver',
+    weaponDesc: 'Dragon Cleaver (Mk. I–V) → Dragon Butterfly Knife (Mk. VI–X)',
+    // Weapon name changes with forge tier, matching the roster art
+    weaponTiers: { 1: 'Dragon Cleaver', 6: 'Dragon Butterfly Knife' },
     specialty: 'Property Income, Loot Drop Rate & Health Regen',
     enamel: '#0B7A55',
     style: { hats: ['none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none', 'none'], pendant: 1, mandarin: 1, suit: 3, glasses: 4, robe: 9, grey: 99 },
@@ -196,6 +198,15 @@ export const FACTIONS = [
     ],
   },
 ]
+
+// Signature weapon name at a forge tier (some factions' weapons change form as they're forged).
+export function weaponName(factionOrId, tier = 1) {
+  const f = typeof factionOrId === 'string' ? getFaction(factionOrId) : factionOrId
+  if (!f.weaponTiers) return f.weapon
+  let name = f.weapon
+  for (const [t, n] of Object.entries(f.weaponTiers)) if (tier >= Number(t)) name = n
+  return name
+}
 
 export const getFaction = (id) => FACTIONS.find((f) => f.id === id) || FACTIONS[0]
 

@@ -1,5 +1,5 @@
 // Pure game logic. Every action takes a state, returns a new state (never mutates input).
-import { FACTIONS, getFaction, rankIndexForLevel, RIVAL_NAMES } from '../data/factions.js'
+import { FACTIONS, getFaction, rankIndexForLevel, RIVAL_NAMES, weaponName } from '../data/factions.js'
 import {
   ITEMS, getItem, SIG_TIERS, JOBS, DISTRICTS, PROPERTIES, CONTRABAND, COLLECTIONS, MASTERY_REWARD, getContraband,
 } from '../data/content.js'
@@ -442,8 +442,9 @@ export function upgradeSignature(state) {
   s.gold -= next.gold
   s.sigTier++
   const f = getFaction(s.factionId)
-  toast(s, `Forged: ${next.prefix} ${f.weapon}!`, 'level')
-  log(s, `Your ${f.weapon} was upgraded to ${next.prefix}.`, 'level')
+  const before = weaponName(f, s.sigTier - 1), after = weaponName(f, s.sigTier)
+  toast(s, `Forged: ${next.prefix} ${after}!`, 'level')
+  log(s, before === after ? `Your ${after} was upgraded to ${next.prefix}.` : `Your ${before} was reforged into the ${next.prefix} ${after}.`, 'level')
   return s
 }
 

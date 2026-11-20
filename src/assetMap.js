@@ -27,7 +27,7 @@ export const ASSET_MAP = {
 const fill = (faction, kind, slot) => { for (let i = 1; i <= 10; i++) slot[faction][i] = `./art/${faction}/${kind}-${String(i).padStart(2, '0')}.jpg` }
 for (const f of ['syndicate', 'firm', 'triad']) fill(f, 'rank', ASSET_MAP.rankAvatars)
 for (const f of ['syndicate', 'firm']) fill(f, 'weapon', ASSET_MAP.signatureWeaponTiers)
-// Triad blades (public/art/triad/blade-NN.jpg) are cut but not wired: the GDD weapon is the Type 59 pistol.
+fill('triad', 'blade', ASSET_MAP.signatureWeaponTiers) // cleaver Mk I–V, butterfly knife Mk VI–X
 
 export const sigWeaponUrl = (factionId, tier) => ASSET_MAP.signatureWeaponTiers[factionId]?.[tier] || ASSET_MAP.signatureWeapons[factionId] || null
 
