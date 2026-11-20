@@ -1,8 +1,9 @@
-import { Building2, Lock } from 'lucide-react'
+import { Lock } from 'lucide-react'
 import { PROPERTIES } from '../../data/content'
 import { buyProperty, collectIncome, propertyPrice, money, fmt } from '../../game/engine'
 import { ASSET_MAP } from '../../assetMap'
 import { Section, Stat } from '../ui'
+import { PropertyArt } from '../../art/Scenes'
 
 export default function RealEstateTab({ s, d, run }) {
   const pi = d.perks.propertyIncome || 0
@@ -28,8 +29,8 @@ export default function RealEstateTab({ s, d, run }) {
           const img = ASSET_MAP.properties[p.id]
           return (
             <div key={p.id} className="panel overflow-hidden">
-              <div className="relative flex h-24 items-center justify-center bg-gradient-to-br from-[#2A2E35] to-[#0B0C0E]">
-                {img ? <img src={img} alt="" className="absolute inset-0 h-full w-full object-cover" /> : <Building2 size={38} className="text-stone-500" />}
+              <div className="relative flex h-28 items-center justify-center bg-gradient-to-b from-[#1F2733] to-[#0B0C0E]">
+                {img ? <img src={img} alt="" className="absolute inset-0 h-full w-full object-cover" /> : <PropertyArt id={p.id} />}
                 <span className="chip absolute right-2 top-2 bg-black/60 text-stone-200">Owned: {owned}</span>
               </div>
               <div className="p-4">

@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Zap, Lock, Star, MapPin } from 'lucide-react'
+import { Zap, Lock, Star } from 'lucide-react'
 import { DISTRICTS, JOBS, STARS, MASTERY_REWARD, getItem, getContraband } from '../../data/content'
 import { doJob, jobBlockers, districtUnlocked, money } from '../../game/engine'
 import { ASSET_MAP } from '../../assetMap'
 import { Bar } from '../ui'
+import { DistrictScene } from '../../art/Scenes'
 
 const STAR_COLORS = ['#57534E', '#CD7F32', '#C0C0C0', '#D4AF37']
 
@@ -28,7 +29,7 @@ export default function JobsTab({ s, d, run }) {
               className="relative h-20 w-36 shrink-0 snap-start overflow-hidden rounded-xl border text-left transition"
               style={{ borderColor: active ? 'var(--accent)' : '#2A2E35', background: `linear-gradient(135deg, ${dist.tint}, #0B0C0E)` }}
             >
-              {img && <img src={img} alt="" className="absolute inset-0 h-full w-full object-cover opacity-70" />}
+              {img ? <img src={img} alt="" className="absolute inset-0 h-full w-full object-cover opacity-70" /> : <DistrictScene id={dist.id} className={open ? '' : 'opacity-40 grayscale'} />}
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
               <div className="relative flex h-full flex-col justify-end p-2">
                 <div className="text-[10px] uppercase tracking-widest text-stone-400">{dist.city}</div>
@@ -43,7 +44,7 @@ export default function JobsTab({ s, d, run }) {
 
       {/* Job cards */}
       <div className="space-y-3">
-        {jobs.map((job) => {
+        {jobs.map((job, ji) => {
           const blockers = jobBlockers(s, job)
           const m = s.mastery[job.id] || { pct: 0, star: 0 }
           const lowEnergy = s.energy < job.energy
@@ -55,9 +56,8 @@ export default function JobsTab({ s, d, run }) {
           return (
             <div key={job.id} className="panel flex flex-col overflow-hidden sm:flex-row">
               <div className="relative h-16 shrink-0 sm:h-auto sm:w-48" style={{ background: `linear-gradient(135deg, ${dist.tint}, #0B0C0E)` }}>
-                {banner ? <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover" /> : (
-                  <div className="absolute inset-0 flex items-center justify-center opacity-40"><MapPin size={40} className="text-stone-200" /></div>
-                )}
+                {banner ? <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover" /> : <DistrictScene id={job.district} align={['xMinYMid', 'xMidYMid', 'xMaxYMid'][ji % 3]} />}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/40" />
                 <div className="absolute bottom-2 left-2 flex gap-0.5">
                   {[1, 2, 3].map((i) => <Star key={i} size={14} fill={m.star >= i ? STAR_COLORS[i] : 'transparent'} color={STAR_COLORS[Math.max(1, i)]} />)}
                 </div>

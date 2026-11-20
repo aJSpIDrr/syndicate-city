@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { ChevronRight, Sword } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { FACTIONS, formatPerk } from '../data/factions'
 import FactionBanner from './FactionBanner'
 import Avatar from './Avatar'
+import SignatureWeapon from '../art/SignatureWeapon'
 
 export default function FactionSelect({ onStart }) {
   const [picked, setPicked] = useState(null)
@@ -48,7 +49,7 @@ export default function FactionSelect({ onStart }) {
                   <p className="mt-3 line-clamp-2 text-sm text-stone-400">{fac.vibe}</p>
                   <div className="mt-3 flex items-center justify-between gap-2 rounded-lg border border-gold/40 bg-gold/5 px-3 py-2">
                     <div className="flex min-w-0 items-center gap-2">
-                      <Sword size={16} className="shrink-0 text-gold" />
+                      <div className="shrink-0"><SignatureWeapon factionId={fac.id} tier={5} width={64} /></div>
                       <span className="truncate text-sm font-semibold text-stone-200">{fac.weapon}</span>
                     </div>
                     <span className="chip shrink-0 bg-gold text-ink">FACTION EXCLUSIVE</span>

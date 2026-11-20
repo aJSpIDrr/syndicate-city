@@ -16,7 +16,7 @@ export default function VaultTab({ s, run }) {
             const color = RARITY[c.rarity].color
             return (
               <div key={c.id} className={`rounded-xl border-2 bg-black/25 p-3 text-center ${qty ? '' : 'opacity-45'}`} style={{ borderColor: `${color}88` }}>
-                <div className="mx-auto h-16 w-16"><ItemArt kind="contraband" id={c.id} rarity={c.rarity} size={64} /></div>
+                <div className="mx-auto h-20 w-20"><ItemArt kind="contraband" id={c.id} rarity={c.rarity} size={80} /></div>
                 <div className="mt-1 text-sm font-semibold leading-tight text-stone-100">{c.name}</div>
                 <div className="text-xs text-stone-400">x{qty}</div>
               </div>
