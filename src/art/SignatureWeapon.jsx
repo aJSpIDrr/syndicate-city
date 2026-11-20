@@ -1,5 +1,6 @@
 import { Materials, m, useUid } from './defs'
 import { getFaction } from '../data/factions'
+import { sigWeaponUrl } from '../assetMap'
 
 // 128x64 hero art for each faction's exclusive weapon. Finish evolves with forge tier:
 // Mk I–III gunmetal, Mk IV engraved, Mk V gold-plated, Mk VI–X mythic gold with faction glow.
@@ -94,6 +95,12 @@ const W = {
 }
 
 export default function SignatureWeapon({ factionId, tier = 1, width = 128 }) {
+  const url = sigWeaponUrl(factionId, tier)
+  if (url) return <img src={url} alt="" width={width} height={width / 2} className="block rounded object-cover" style={{ width, height: width / 2 }} />
+  return <SvgWeapon factionId={factionId} tier={tier} width={width} />
+}
+
+function SvgWeapon({ factionId, tier, width }) {
   const u = useUid()
   const fac = getFaction(factionId)
   const f = finish(tier)

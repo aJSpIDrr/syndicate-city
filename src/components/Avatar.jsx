@@ -169,8 +169,9 @@ export default function Avatar({ factionId, rank = 0, size = 72, locked = false,
         {tier.key === 'gold' && <path d="M42 4 l4 -3 l4 3 l4 -3 l4 3 v3 h-16 Z" fill="#F5D77A" stroke="#8A6D1F" strokeWidth=".5" />}
         {tier.key === 'iron' && [[9, 9], [91, 9], [9, 91], [91, 91]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="1.3" fill="#8E9297" />)}
       </svg>
-      {url && !locked && (
-        <img src={url} alt="" className="absolute inset-[8%] h-[84%] w-[84%] rounded-md object-cover" />
+      {url && (
+        <img src={url} alt="" loading="lazy" className="absolute inset-[8%] h-[84%] w-[84%] rounded-md object-cover"
+          style={locked ? { filter: 'grayscale(1) brightness(.45)' } : undefined} />
       )}
     </div>
   )

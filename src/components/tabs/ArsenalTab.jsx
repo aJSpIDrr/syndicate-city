@@ -3,7 +3,6 @@ import { Coins, Hammer } from 'lucide-react'
 import { getFaction } from '../../data/factions'
 import { ITEMS, SIG_TIERS, RARITY } from '../../data/content'
 import { upgradeSignature, buyItem, sellItem, money, fmt } from '../../game/engine'
-import { ASSET_MAP } from '../../assetMap'
 import { Section, ItemArt, RarityTag } from '../ui'
 import SignatureWeapon from '../../art/SignatureWeapon'
 
@@ -29,14 +28,14 @@ function Forge({ s, d, run }) {
   const f = getFaction(s.factionId)
   const cur = SIG_TIERS[s.sigTier - 1]
   const next = SIG_TIERS[s.sigTier]
-  const img = ASSET_MAP.signatureWeapons[s.factionId]
+  const img = null // SignatureWeapon resolves ASSET_MAP images per tier
   const glow = s.sigTier >= 6 ? '#D4AF37' : s.sigTier >= 4 ? f.accent : '#57534E'
   return (
     <>
       <Section>
         <div className="flex flex-col gap-5 sm:flex-row">
           <div className="relative mx-auto flex h-32 w-48 shrink-0 items-center justify-center rounded-xl border-2 border-gold bg-gradient-to-br from-[#2b2410] to-black sm:mx-0" style={{ boxShadow: `0 0 ${8 + s.sigTier * 3}px ${glow}` }}>
-            {img ? <img src={img} alt="" className="h-full w-full object-contain p-2" /> : <SignatureWeapon factionId={s.factionId} tier={s.sigTier} width={172} />}
+            {img ? <img src={img} alt="" className="h-full w-full object-contain p-2" /> : <SignatureWeapon factionId={s.factionId} tier={s.sigTier} width={184} />}
             <span className="chip absolute -bottom-2 bg-gold text-ink">Mk. {s.sigTier}</span>
           </div>
           <div className="min-w-0 flex-1">
