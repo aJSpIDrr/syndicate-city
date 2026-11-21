@@ -38,6 +38,12 @@ ASSET_MAP.headerBanners.families = './art/scenes/families-header.jpg'
 ASSET_MAP.factionBanners.families = './art/scenes/families-card.jpg'
 ASSET_MAP.districts.docks = './art/scenes/docks.jpg'
 ASSET_MAP.districts.midtown = './art/scenes/midtown.jpg'
+for (const f of ['firm', 'yakuza', 'triad', 'syndicate', 'sinaloa']) {
+  ASSET_MAP.pageBackgrounds[f] = `./art/scenes/${f}-bg.jpg`
+  ASSET_MAP.headerBanners[f] = `./art/scenes/${f}-header.jpg`
+  ASSET_MAP.factionBanners[f] = `./art/scenes/${f}-card.jpg`
+}
+for (const d of ['eastend', 'downtown', 'shinjuku', 'kowloon', 'jozi', 'border']) ASSET_MAP.districts[d] = `./art/scenes/${d}.jpg`
 
 export const sigWeaponUrl = (factionId, tier) => ASSET_MAP.signatureWeaponTiers[factionId]?.[tier] || ASSET_MAP.signatureWeapons[factionId] || null
 

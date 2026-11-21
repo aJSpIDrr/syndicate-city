@@ -1,6 +1,6 @@
 # Syndicate City — Art List
 
-**Already in the game:** rank portraits + signature weapon tiers for The Five Families, The Firm, The Triad and The Syndicate. Five Families page background, header banner and faction card. District scenes for The Docks and Midtown.
+**Already in the game:** rank portraits + signature weapon tiers for The Five Families, The Firm, The Triad and The Syndicate. Page backgrounds, header banners and faction cards for **all 6 factions**. District scenes for **all 8 districts**.
 
 Everything below has a slot ready in the game. Any slot without art uses the built-in drawings, so upload in any order.
 
@@ -30,21 +30,8 @@ Same layout as your other faction sheets. Square-ish portrait cells, wide weapon
 | 3 | Weapon Mk I → Mk V (currently a Gold-Engraved Desert AK-47) |
 | 4 | Weapon Mk VI → Mk X |
 
-## Page backgrounds — 6 separate images, 1920 × 1080
-These sit behind the whole game and get darkened automatically. Keep the centre calm, because the menus sit on top. Put detail at the edges.
-1. ~~The Five Families~~ ✅ done
-2. The Firm: foggy London, cobblestones, gas lamps, Tower Bridge
-3. Yakuza Clan: Shinjuku neon alley in the rain
-4. Triad Society: Victoria Harbour at night, junk boats, lanterns
-5. The Syndicate: Johannesburg skyline at dusk, mine headframe, gold light
-6. Sinaloa Cartel: desert hacienda, mountains, an airstrip at sunset
-
-## Header banners — 5 still needed (Five Families ✅), 2400 × 240 (very wide strip)
-Tip: a normal 16:9 city scene works too. I crop the strip out of it, like I did for New York.
-The title strip across the top of every screen. Leave the **left third darker and plain**, because the "SYNDICATE CITY" logo sits there. Use the same six cities as the backgrounds.
-
-## Sheet 3 — Faction select banners (2 columns × 3 rows), each cell 1200 × 360
-1. Five Families · 2. The Firm · 3. Yakuza · 4. Triad · 5. Syndicate · 6. Sinaloa
+## Backgrounds, header banners, faction cards, district scenes ✅ all done
+Higher-resolution versions are welcome later (each city panel was about 835 px wide, so the full-page backgrounds are softened on purpose). A 16:9 scene per city at 1920 px or wider would make them sharp.
 
 ## Sheet 4 — Mentors & District Bosses (5 columns × 3 rows), square cells (512 × 512 each)
 | # | Who | Notes |
@@ -64,17 +51,6 @@ The title strip across the top of every screen. Leave the **left third darker an
 | 13 | Grootbaas Venter | Boss of Jozi (Johannesburg), gold-plated armour |
 | 14 | El Escorpión | Boss of The Border (Sinaloa), gunship, scorpion motif |
 | 15 | *(leave empty)* | |
-
-## Sheet 5 — District scenes (2 columns × 4 rows), each cell 1200 × 450 (wide)
-Used for the district cards and every job banner, so make them atmospheric and easy to read small.
-1. ~~The Docks~~ ✅ done
-2. ~~Midtown~~ ✅ done
-3. East End, London: terraced houses, a pub, rain
-4. Downtown, London: bank columns, Big Ben, a red phone box
-5. Shinjuku, Tokyo: neon signs, rain, crowds
-6. Kowloon Harbor, Hong Kong: towers, a junk boat, lanterns
-7. Jozi, Johannesburg: a mine headframe, highway, cash van
-8. The Border, Sinaloa: desert, an airstrip, a small plane, cacti
 
 ## Sheet 6 — Properties (3 columns × 2 rows), each cell 640 × 360
 1. Corner Newsstand · 2. Back-Alley Laundromat · 3. Underground Speakeasy · 4. Club Paradise (Nightclub) · 5. Grand Hotel & Casino · 6. Global Shipping Syndicate
