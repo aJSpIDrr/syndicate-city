@@ -4,6 +4,7 @@ import { ACHIEVEMENTS, DAILY_GOLD } from '../../data/content'
 import { dailyStatus, claimDaily, achievementProgress, claimAchievement, money, fmt } from '../../game/engine'
 import { Section } from '../ui'
 import Avatar from '../Avatar'
+import { ASSET_MAP } from '../../assetMap'
 
 function Reward({ r }) {
   return (
@@ -83,7 +84,7 @@ export default function MissionsTab({ s, d, run }) {
       <Section flush title={`${f.mentor}'s Orders`}>
         {nextMentor && (
           <div className="flex items-center gap-3 border-b border-[#24272D] bg-black/30 px-3 py-2">
-            <Avatar factionId={s.factionId} rank={9} size={40} />
+            {ASSET_MAP.mentors[s.factionId] ? <img src={ASSET_MAP.mentors[s.factionId]} alt="" className="h-10 w-10 rounded object-cover" /> : <Avatar factionId={s.factionId} rank={9} size={40} />}
             <p className="text-[12px] italic text-stone-300">"{nextMentor.desc} Do that, and there's something in it for you." — {f.mentor}</p>
           </div>
         )}

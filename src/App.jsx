@@ -4,6 +4,7 @@ import { useGame } from './game/useGame'
 import { getFaction } from './data/factions'
 import { markRead, collectionReady, claimableCount } from './game/engine'
 import { COLLECTIONS } from './data/content'
+import { ASSET_MAP } from './assetMap'
 import FactionSelect from './components/FactionSelect'
 import Header from './components/Header'
 import { TABS } from './components/tabs.js'
@@ -43,7 +44,13 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-full pb-10" style={{ '--accent': f.accent, '--deep': f.deep }}>
+    <div className="min-h-full pb-10" style={{
+      '--accent': f.accent, '--deep': f.deep,
+      ...(ASSET_MAP.pageBackgrounds[s.factionId] && {
+        backgroundImage: `linear-gradient(rgba(10,11,13,.82), rgba(10,11,13,.9)), url(${ASSET_MAP.pageBackgrounds[s.factionId]})`,
+        backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center',
+      }),
+    }}>
       <Header s={s} d={d} tab={tab} setTab={setTab} onOpen={open} badges={badges} />
       <main className="mx-auto max-w-[1000px] px-2 pt-3 sm:px-3">
         <h1 className="mb-2 font-display text-xl font-bold uppercase tracking-wider text-stone-100">{TABS.find((t) => t.id === tab).label}</h1>

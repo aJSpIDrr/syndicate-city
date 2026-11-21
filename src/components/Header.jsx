@@ -36,7 +36,7 @@ export default function Header({ s, d, tab, setTab, onOpen, badges }) {
     <header className="sticky top-0 z-30 shadow-[0_4px_12px_rgba(0,0,0,.6)]">
       {/* Title banner */}
       <div className="hidden sm:block">
-        <FactionBanner factionId={s.factionId} height={76}>
+        <FactionBanner factionId={s.factionId} height={76} header>
           <div className="mx-auto flex h-full max-w-[1000px] items-center gap-4 px-3">
             <div className="font-display text-3xl font-extrabold tracking-[0.12em] gold-shine drop-shadow">SYNDICATE CITY</div>
             <div className="hidden text-xs uppercase tracking-widest text-stone-300 md:block">{f.city} · {f.name}</div>

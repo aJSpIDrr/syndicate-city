@@ -57,9 +57,9 @@ const SKYLINES = {
   ),
 }
 
-export default function FactionBanner({ factionId, height = 120, children }) {
+export default function FactionBanner({ factionId, height = 120, children, header = false }) {
   const f = getFaction(factionId)
-  const url = ASSET_MAP.factionBanners[factionId]
+  const url = (header && ASSET_MAP.headerBanners[factionId]) || ASSET_MAP.factionBanners[factionId]
   return (
     <div className="relative w-full overflow-hidden" style={{ height, background: `linear-gradient(135deg, ${f.deep}, #0B0C0E 85%)` }}>
       {url ? (

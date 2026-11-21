@@ -116,8 +116,10 @@ function BossRow({ s, d, run, districtId }) {
   const reward = getItem(b.reward.item)
   return (
     <div className="flex flex-wrap items-center gap-3 border-t-2 px-3 py-3 sm:flex-nowrap" style={{ borderColor: 'var(--accent)', background: 'linear-gradient(90deg, rgba(120,0,0,.25), transparent)' }}>
-      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-red-800 bg-black/60">
-        {bs.defeated ? <Trophy size={26} className="text-gold" /> : <Skull size={28} className={unlocked ? 'text-red-400' : 'text-stone-600'} />}
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-red-800 bg-black/60">
+        {ASSET_MAP.bosses[districtId]
+          ? <img src={ASSET_MAP.bosses[districtId]} alt="" className="h-full w-full rounded-full object-cover" style={unlocked ? undefined : { filter: 'grayscale(1) brightness(.4)' }} />
+          : bs.defeated ? <Trophy size={26} className="text-gold" /> : <Skull size={28} className={unlocked ? 'text-red-400' : 'text-stone-600'} />}
       </div>
       <div className="min-w-0 flex-1">
         <div className="k text-red-400">District Boss</div>

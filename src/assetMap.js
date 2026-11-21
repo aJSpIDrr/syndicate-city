@@ -11,8 +11,11 @@ const factionIds = ['families', 'firm', 'yakuza', 'triad', 'syndicate', 'sinaloa
 const perFaction = (fn) => Object.fromEntries(factionIds.map((id) => [id, fn(id)]))
 
 export const ASSET_MAP = {
-  factionBanners: perFaction(() => null), // 400x120
-  mentors: perFaction(() => null), // 150x150
+  pageBackgrounds: perFaction(() => null), // 1920x1080, behind the whole game (darkened automatically)
+  headerBanners: perFaction(() => null), // 2400x240, the title strip at the top (falls back to factionBanners)
+  factionBanners: perFaction(() => null), // 1200x360, faction select cards
+  mentors: perFaction(() => null), // 512x512 square
+  bosses: {}, // [districtId] 512x512 square boss portraits
   rankAvatars: perFaction(() => tenSlots()), // [factionId][1..10], square portraits
   signatureWeapons: perFaction(() => null), // 128x128, used for every tier unless signatureWeaponTiers has one
   signatureWeaponTiers: perFaction(() => tenSlots()), // [factionId][1..10], one image per forge tier
