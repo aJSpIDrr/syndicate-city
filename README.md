@@ -31,7 +31,7 @@ The game will then be live at `https://ajspidrr.github.io/syndicate-city/`.
 - **Jobs**: 8 districts and 24 jobs (the 8 from the GDD plus 16 more), item and family requirements, loot and contraband drops, and Bronze/Silver/Gold mastery (+3 Gold plus a stat bonus each).
 - **Leveling**: XP = ⌊30 × L^1.35⌋ (retuned from the GDD's 50 × L^1.65, see Balance). Each level gives +2 Gold and 5 Skill Points, and refills your meters. Each rank promotion pays 5 × the new rank number in Gold.
 - **Family**: recruit up to 500 crew. Combat follows the GDD formula: the boss uses the signature weapon, and the crew uses your best N−1 weapons plus N armor and N vehicles.
-- **Arsenal**: a signature weapon forge (Mk. I → Mk. X with Gold: crit, armor pen, cash-stolen passives) and a Black Market with all 25 GDD items, including upkeep.
+- **Arsenal**: Gold Exclusives (12 premium items bought with Gold, level-gated, not sellable), a signature weapon forge (Mk. I → Mk. X with Gold: crit, armor pen, cash-stolen passives) and a Black Market with all 25 GDD items, including upkeep.
 - **Real Estate**: 6 properties, price ×1.15 per property owned, hourly income net of gear upkeep (holds up to 24h).
 - **Bank**: 10% laundering fee (The Firm lowers it to 2%). Banked cash is safe.
 - **Fight Club**: an AI rival generator covering all 6 factions, crits, armor pen, a hospital rule (<20 HP), a Street Doctor, a leaderboard, and asynchronous rival raids on your unbanked cash.

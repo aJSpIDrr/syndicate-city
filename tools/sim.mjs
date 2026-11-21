@@ -56,7 +56,7 @@ function gearUp() {
   const slots = { weapon: s.family - 1 - d.equipped.weapons, armor: s.family - d.equipped.armor, vehicle: s.family - d.equipped.vehicles }
   for (const cat of ['weapon', 'armor', 'vehicle']) {
     if (slots[cat] <= 0) continue
-    const opts = ITEMS.filter((i) => i.category === cat && !i.unique && i.price * 4 < s.cash).sort((a, b) => (b.atk + b.def) - (a.atk + a.def))
+    const opts = ITEMS.filter((i) => i.category === cat && !i.unique && !i.exclusive && i.price * 4 < s.cash).sort((a, b) => (b.atk + b.def) - (a.atk + a.def))
     if (opts[0]) s = E.buyItem(s, opts[0].id, Math.min(slots[cat], Math.floor(s.cash / 4 / opts[0].price)) || 1)
   }
 }

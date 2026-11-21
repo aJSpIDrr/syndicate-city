@@ -7,6 +7,7 @@ export const RARITY = {
   rare: { label: 'Rare', color: '#60A5FA' },
   epic: { label: 'Epic', color: '#C084FC' },
   legendary: { label: 'Legendary', color: '#D4AF37' },
+  exclusive: { label: 'Exclusive', color: '#FF4D6D' },
 }
 
 // ---- Signature weapon upgrade tiers (Mk. I – Mk. X) ----
@@ -205,3 +206,22 @@ export const ACHIEVEMENTS = [
   ach('sets3', 'Collector', 'Vault 3 collection sets.', 3, vaulted, { gold: 15 }),
   ach('mk10', 'Mythic Arsenal', 'Forge your signature weapon to Mk. X.', 10, (s) => s.sigTier, { gold: 50 }),
 ]
+
+// ---- Gold Exclusives (bought with Gold Bars in the Arsenal; not sellable) ----
+// `sprite` is a stand-in drawing until custom art is added via ASSET_MAP.items[id].
+const excl = (id, category, name, atk, def, gold, level, sprite) => ({ id, category, name, rarity: 'exclusive', atk, def, price: 0, upkeep: 0, exclusive: true, gold, level, sprite })
+export const EXCLUSIVES = [
+  excl('x_tommy', 'weapon', 'Gilded Tommy Gun', 40, 18, 12, 8, 'shotgun'),
+  excl('x_machete', 'weapon', 'Dragon Bone Machete', 55, 22, 20, 15, 'switchblade'),
+  excl('x_eagle', 'weapon', 'Solid Gold Desert Eagle', 70, 30, 30, 22, 'pistol45'),
+  excl('x_rpg', 'weapon', 'Shoulder Rocket Launcher', 95, 35, 50, 32, 'sniper'),
+  excl('x_mink', 'armor', 'Mink Fur Overcoat', 14, 40, 10, 8, 'trench'),
+  excl('x_weave', 'armor', 'Titanium Weave Suit', 20, 60, 18, 15, 'leather'),
+  excl('x_tux', 'armor', 'Bulletproof Tuxedo', 28, 80, 30, 22, 'kevlar'),
+  excl('x_jugg', 'armor', 'Juggernaut Bomb Suit', 35, 110, 50, 32, 'tacsuit'),
+  excl('x_roadster', 'vehicle', 'Gold Leaf Roadster', 35, 30, 12, 8, 'musclecar'),
+  excl('x_limo', 'vehicle', 'Armored Presidential Limo', 45, 60, 22, 15, 'armoredsedan'),
+  excl('x_yacht', 'vehicle', 'Midnight Mega Yacht', 70, 65, 35, 22, 'speedboat'),
+  excl('x_jet', 'vehicle', 'Private Smuggling Jet', 100, 90, 55, 32, 'helicopter'),
+]
+ITEMS.push(...EXCLUSIVES)

@@ -424,7 +424,7 @@ export function collectIncome(state) {
 
 export function buyItem(state, id, qty = 1) {
   const item = getItem(id)
-  if (!item || item.unique) return state
+  if (!item || item.unique || item.exclusive) return state
   const s = clone(state)
   const total = item.price * qty
   if (s.cash < total) { toast(s, 'Not enough cash on hand.', 'error'); return s }
@@ -437,7 +437,7 @@ export function buyItem(state, id, qty = 1) {
 export function sellItem(state, id, qty = 1) {
   const item = getItem(id)
   const have = state.inventory[id] || 0
-  if (have < qty || item.unique) return state
+  if (have < qty || item.unique || item.exclusive) return state
   const s = clone(state)
   const total = Math.floor(item.price * 0.5) * qty
   s.inventory[id] = have - qty
@@ -797,5 +797,19 @@ export function importSave(code) {
   s.achievements ??= {}; s.daily ??= { last: null, streak: 0 }; s.bosses ??= {}; s.revenge ??= []
   s.lastTick = Date.now()
   s.toast = { id: Date.now(), text: `Welcome back, ${s.bossName}. Save restored.`, kind: 'level' }
+  return s
+}
+
+// ---------- Gold Exclusives ----------
+export function buyExclusive(state, id) {
+  const item = getItem(id)
+  if (!item || !item.exclusive) return state
+  const s = clone(state)
+  if (s.level < item.level) { toast(s, `Unlocks at Level ${item.level}.`, 'error'); return s }
+  if (s.gold < item.gold) { toast(s, `Needs ${item.gold} Gold Bars.`, 'error'); return s }
+  s.gold -= item.gold
+  s.inventory[id] = (s.inventory[id] || 0) + 1
+  toast(s, `Acquired ${item.name} for ${item.gold} Gold.`, 'level')
+  log(s, `Bought the exclusive ${item.name} for ${item.gold} Gold Bars.`, 'win')
   return s
 }

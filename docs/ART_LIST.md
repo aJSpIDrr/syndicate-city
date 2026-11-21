@@ -75,6 +75,14 @@ One item per cell, centred on a plain dark background.
 
 Make the trophies (rows 3–4) look legendary: gold trim and a glow.
 
+## Sheet 9 — Gold Exclusives (4 columns × 3 rows), square cells (400 × 400 each)
+Premium gear bought with Gold. Make it look expensive: gold, chrome, gems, a crimson glow.
+| Row | Cells |
+| --- | --- |
+| 1 | Gilded Tommy Gun · Dragon Bone Machete · Solid Gold Desert Eagle · Shoulder Rocket Launcher |
+| 2 | Mink Fur Overcoat · Titanium Weave Suit · Bulletproof Tuxedo · Juggernaut Bomb Suit |
+| 3 | Gold Leaf Roadster · Armored Presidential Limo · Midnight Mega Yacht · Private Smuggling Jet |
+
 ## Logo — 1 separate image, 1600 × 400, transparent PNG
 "SYNDICATE CITY" in gold Art Deco lettering. Used on the title screen and header.
 

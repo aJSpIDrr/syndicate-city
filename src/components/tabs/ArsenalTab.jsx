@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { Coins, Hammer } from 'lucide-react'
+import { Coins, Hammer, Lock, Crown } from 'lucide-react'
 import { getFaction, weaponName } from '../../data/factions'
-import { ITEMS, SIG_TIERS, RARITY } from '../../data/content'
-import { upgradeSignature, buyItem, sellItem, money, fmt } from '../../game/engine'
+import { ITEMS, SIG_TIERS, RARITY, EXCLUSIVES } from '../../data/content'
+import { upgradeSignature, buyItem, sellItem, buyExclusive, money, fmt } from '../../game/engine'
 import { Section, ItemArt, RarityTag } from '../ui'
 import SignatureWeapon from '../../art/SignatureWeapon'
 
@@ -13,13 +13,13 @@ export default function ArsenalTab({ s, d, run }) {
   return (
     <div className="space-y-3">
       <div className="inline-flex rounded-lg border border-line bg-black/30 p-1">
-        {[['forge', 'Signature Weapon Forge'], ['shop', 'Black Market Shop']].map(([id, label]) => (
+        {[['forge', 'Signature Weapon Forge'], ['shop', 'Black Market Shop'], ['gold', 'Gold Exclusives']].map(([id, label]) => (
           <button key={id} onClick={() => setSub(id)} className={`rounded-md px-3 py-1.5 text-sm font-semibold ${sub === id ? 'text-ink' : 'text-stone-300'}`} style={sub === id ? { background: 'var(--accent)' } : undefined}>
             {label}
           </button>
         ))}
       </div>
-      {sub === 'forge' ? <Forge s={s} d={d} run={run} /> : <Shop s={s} d={d} run={run} />}
+      {sub === 'forge' ? <Forge s={s} d={d} run={run} /> : sub === 'shop' ? <Shop s={s} d={d} run={run} /> : <Exclusives s={s} d={d} run={run} />}
     </div>
   )
 }
@@ -83,7 +83,7 @@ function Forge({ s, d, run }) {
 
 function Shop({ s, d, run }) {
   const [cat, setCat] = useState('weapon')
-  const items = ITEMS.filter((i) => i.category === cat && !i.unique)
+  const items = ITEMS.filter((i) => i.category === cat && !i.unique && !i.exclusive)
   const bonus = cat === 'weapon' ? d.perks.weapon : cat === 'vehicle' ? d.perks.vehicle : 0
   return (
     <Section
@@ -130,6 +130,54 @@ function Shop({ s, d, run }) {
           )
         })}
       </div>
+    </Section>
+  )
+}
+
+function Exclusives({ s, d, run }) {
+  const cats = [['weapon', 'Weapons'], ['armor', 'Armor'], ['vehicle', 'Vehicles']]
+  const color = RARITY.exclusive.color
+  return (
+    <Section
+      flush
+      title={<span className="flex items-center gap-1.5"><Crown size={15} className="text-gold" /> Gold Exclusives</span>}
+      right={<span className="flex items-center gap-1 text-[12px] font-bold text-gold"><Coins size={13} /> {fmt(s.gold)} Gold</span>}
+    >
+      <p className="border-b border-[#24272D] px-3 py-2 text-[11px] text-stone-400">
+        Rare gear you can only buy with Gold Bars. Stronger than anything on the Black Market, no upkeep, and your crew equips it automatically. Exclusives can't be sold.
+      </p>
+      {cats.map(([cat, label]) => (
+        <div key={cat}>
+          <div className="row bg-black/40 py-1"><span className="k flex-1">{label}</span><span className="k hidden w-24 text-center sm:block">Stats</span><span className="k hidden w-16 text-center sm:block">Owned</span><span className="k hidden w-[170px] text-right sm:block">Price</span></div>
+          {EXCLUSIVES.filter((x) => x.category === cat).map((item) => {
+            const owned = s.inventory[item.id] || 0
+            const locked = s.level < item.level
+            return (
+              <div key={item.id} className={`row flex-wrap sm:flex-nowrap ${locked ? 'opacity-60' : ''}`}>
+                <div className="h-16 w-16 shrink-0 rounded border-2 bg-black/40" style={{ borderColor: color, boxShadow: `0 0 10px ${color}55` }}>
+                  <ItemArt kind="item" id={item.id} category={item.category} rarity={item.rarity} size={60} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-bold text-stone-100">{item.name}</div>
+                  <RarityTag rarity={item.rarity} />
+                  <div className="text-[11px] text-stone-500">{locked ? `Unlocks at Level ${item.level}` : 'No upkeep · auto-equipped'}</div>
+                </div>
+                <div className="w-24 shrink-0 text-center text-[12px]">
+                  <div className="font-bold text-red-300">{item.atk} Atk</div>
+                  <div className="font-bold text-blue-300">{item.def} Def</div>
+                </div>
+                <div className="w-16 shrink-0 text-center font-bold text-stone-200">x{fmt(owned)}</div>
+                <div className="flex w-full shrink-0 items-center justify-end gap-2 sm:w-[170px]">
+                  <span className="flex items-center gap-1 font-bold text-gold"><Coins size={13} /> {item.gold}</span>
+                  <button className="classic-btn classic-btn-gold" disabled={locked || s.gold < item.gold} onClick={() => run(buyExclusive, item.id)}>
+                    {locked ? <><Lock size={12} /> Lv {item.level}</> : 'Buy'}
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ))}
     </Section>
   )
 }
