@@ -1,4 +1,4 @@
-import { RefreshCw, Swords, Stethoscope, Star } from 'lucide-react'
+import { RefreshCw, Swords, Stethoscope, Star, Flame } from 'lucide-react'
 import { getFaction } from '../../data/factions'
 import { attackRival, refreshRivals, healAtDoctor, money, fmt, respectOf, cityRank, HOSPITAL_THRESHOLD } from '../../game/engine'
 import Avatar from '../Avatar'
@@ -15,6 +15,7 @@ function odds(my, their) {
 
 export default function FightClubTab({ s, d, run }) {
   const injured = s.health < HOSPITAL_THRESHOLD
+  const revenge = (s.revenge || []).filter((r) => r.until > Date.now())
   const docCost = s.level * 150
   const me = { name: s.bossName, factionId: s.factionId, respect: respectOf(s), me: true }
   const board = [...s.leaderboard, me].sort((a, b) => b.respect - a.respect)
@@ -37,6 +38,33 @@ export default function FightClubTab({ s, d, run }) {
           <div className="flex-1 text-sm text-red-100">You're in the hospital (Health below {HOSPITAL_THRESHOLD}). You can't fight or be targeted until you heal.</div>
           <button className="classic-btn classic-btn-gold" disabled={s.cash < docCost} onClick={() => run(healAtDoctor)}>Street Doctor · {money(docCost)}</button>
         </div>
+      )}
+
+      {revenge.length > 0 && (
+        <Section flush title={<span className="flex items-center gap-1.5 text-red-400"><Flame size={15} /> Revenge List</span>}
+          right={<span className="text-[11px] text-stone-400">+50% cash &amp; XP · 24h to strike back</span>}>
+          {revenge.map((r) => {
+            const f = getFaction(r.factionId)
+            const o = odds(d.pAtk, r.def * (1 - d.pen))
+            const down = r.health < HOSPITAL_THRESHOLD
+            const hrs = Math.max(1, Math.ceil((r.until - Date.now()) / 3600000))
+            return (
+              <div key={r.id} className="row" style={{ background: 'rgba(150,20,20,.12)' }}>
+                <Avatar factionId={r.factionId} rank={r.rank} size={44} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-bold text-stone-100">{r.name}</div>
+                  <div className="truncate text-[11px]" style={{ color: f.accent }}>{f.ranks[r.rank].title} · {f.name}</div>
+                  <div className="text-[11px] text-red-300">Stole {money(r.stolen)} from you · {hrs}h left</div>
+                </div>
+                <span className="hidden w-16 text-center font-bold text-stone-200 sm:block">{r.level}</span>
+                <span className="hidden w-20 text-center font-bold sm:block" style={{ color: o.color }}>{o.label}</span>
+                <button className="classic-btn w-24 shrink-0" style={{ '--accent': '#C8272D' }} disabled={s.stamina < 1 || injured || down} onClick={() => run(attackRival, r.id)}>
+                  <Flame size={12} /> Revenge
+                </button>
+              </div>
+            )
+          })}
+        </Section>
       )}
 
       <Section

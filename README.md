@@ -39,6 +39,10 @@ The game will then be live at `https://ajspidrr.github.io/syndicate-city/`.
 - **District bosses**: Bronze every job in a district to unlock its boss; wear them down over several hits for Gold, cash and a unique trophy item.
 - **Missions & Rewards**: a 7-day daily tribute streak, mentor orders for new players, and 25 achievements paying Gold and cash.
 - **Repeat jobs**: x5 button on every unlocked job.
+- **Revenge list**: rivals who raid you appear in the Fight Club for 24h; beating them pays +50% cash and XP.
+- **Save backup**: copy a backup code in Settings and restore it on any device (also from the start screen).
+- **Sound effects** (WebAudio, no files) with a mute switch in Settings.
+- **Installable**: add to your phone's home screen; plays offline after the first visit.
 - **Gold Store** with dev test tools (+5 Levels, +50 Gold, +$100k).
 - Saves to `localStorage`. Reset is under Settings.
 

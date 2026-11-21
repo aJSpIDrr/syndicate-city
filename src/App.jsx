@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { playForToast } from './game/sound'
 import { useGame } from './game/useGame'
 import { getFaction } from './data/factions'
 import { markRead, collectionReady, claimableCount } from './game/engine'
@@ -19,11 +20,12 @@ import MissionsTab from './components/tabs/MissionsTab'
 const TAB_VIEWS = { family: FamilyTab, jobs: JobsTab, realestate: RealEstateTab, arsenal: ArsenalTab, fight: FightClubTab, vault: VaultTab, missions: MissionsTab }
 
 export default function App() {
-  const { state: s, derived: d, run, start, reset } = useGame()
+  const { state: s, derived: d, run, start, reset, restore } = useGame()
   const [tab, setTab] = useState('jobs')
   const [modal, setModal] = useState(null)
+  useEffect(() => { playForToast(s?.toast) }, [s?.toast?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!s) return <FactionSelect onStart={(name, id) => { start(name, id); setTab('jobs') }} />
+  if (!s) return <FactionSelect onStart={(name, id) => { start(name, id); setTab('jobs') }} onRestore={restore} />
 
   const f = getFaction(s.factionId)
   const View = TAB_VIEWS[tab]
@@ -53,7 +55,7 @@ export default function App() {
       <BankModal open={modal === 'bank'} onClose={close} s={s} d={d} run={run} />
       <DoctorModal open={modal === 'doctor'} onClose={close} s={s} d={d} run={run} />
       <LogModal open={modal === 'log'} onClose={close} s={s} />
-      <SettingsModal open={modal === 'settings'} onClose={close} s={s} onReset={() => { close(); reset() }} />
+      <SettingsModal open={modal === 'settings'} onClose={close} s={s} onReset={() => { close(); reset() }} onRestore={(code) => { restore(code); close() }} />
       <Toast toast={s.toast} />
     </div>
   )

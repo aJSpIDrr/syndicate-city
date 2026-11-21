@@ -27,7 +27,7 @@ export const money = (n) => '$' + fmt(n)
 export const BALANCE = {
   xpBase: 30, xpExp: 1.35, // XP to next level = floor(xpBase * L^xpExp). GDD original: 50 * L^1.65
   pvpXpBase: 4, pvpXpPerLevel: 1, // XP per PvP win. GDD original: 10 + 2 * level
-  rivalGearAtk: [1, 4.2, 0.68], rivalGearDef: [1, 4, 0.68], // rival per-crew-member gear: a + b * level^c
+  rivalGearAtk: [1, 3.75, 0.76], rivalGearDef: [1, 3.55, 0.76], // rival per-crew-member gear: a + b * level^c
   rivalMult: [0.8, 1.2], // rival strength spread
   raidEverySecs: 1500, // average seconds between rival raids while playing
   raidMaxOffline: 2,
@@ -81,6 +81,7 @@ export function newGame(bossName, factionId) {
     achievements: {},
     daily: { last: null, streak: 0 },
     bosses: {},
+    revenge: [],
     promotion: null,
     toast: null,
   }
@@ -103,6 +104,7 @@ export function loadGame() {
     s.achievements ??= {}
     s.daily ??= { last: null, streak: 0 }
     s.bosses ??= {}
+    s.revenge ??= []
     return s
   } catch {
     return null
@@ -224,7 +226,9 @@ function incomingRaid(s, d) {
     s.cash -= stolen
     s.health = Math.max(0, s.health - dmg)
     s.stats.defendedLost++
-    log(s, `${r.name} (${f.name}) raided you and stole ${money(stolen)} unbanked cash. You took ${dmg} damage.`, 'loss')
+    // Remember the raider for 24h so the player can take revenge
+    s.revenge = [{ ...r, id: 'rv' + r.id, stolen, until: Date.now() + 24 * 3600 * 1000, cash: r.cash + stolen }, ...(s.revenge || [])].slice(0, 5)
+    log(s, `${r.name} (${f.name}) raided you and stole ${money(stolen)} unbanked cash. You took ${dmg} damage. Get revenge in the Fight Club.`, 'loss')
   } else {
     const dmg = randInt(5, 10)
     s.health = Math.max(0, s.health - dmg)
@@ -563,7 +567,9 @@ export function refreshRivals(state) {
 
 export function attackRival(state, rivalId) {
   const s = clone(state)
-  const r = s.rivals.find((x) => x.id === rivalId)
+  s.revenge = (s.revenge || []).filter((x) => x.until > Date.now())
+  const isRevenge = rivalId.startsWith('rv')
+  const r = (isRevenge ? s.revenge : s.rivals).find((x) => x.id === rivalId)
   if (!r) return state
   if (s.stamina < 1) { toast(s, 'Not enough Stamina.', 'error'); return s }
   if (s.health < HOSPITAL_THRESHOLD) { toast(s, 'You are too injured to fight. Visit the Street Doctor.', 'error'); return s }
@@ -577,9 +583,10 @@ export function attackRival(state, rivalId) {
   const f = getFaction(r.factionId)
   let msg
   if (finalAtk > finalDef) {
+    const bonus = isRevenge ? 1.5 : 1
     const pct = rand(0.10, 0.15) * (1 + (pk.pvpCash || 0) + d.sig.cash)
-    const stolen = Math.floor(r.cash * pct)
-    const xp = BALANCE.pvpXpBase + r.level * BALANCE.pvpXpPerLevel
+    const stolen = Math.floor(r.cash * pct * bonus)
+    const xp = Math.round((BALANCE.pvpXpBase + r.level * BALANCE.pvpXpPerLevel) * bonus)
     const dealt = randInt(15, 30), taken = randInt(5, 12)
     r.cash -= stolen
     r.health = Math.max(0, r.health - dealt)
@@ -587,7 +594,8 @@ export function attackRival(state, rivalId) {
     s.stats.cashEarned += stolen
     s.health = Math.max(0, s.health - taken)
     s.stats.fightsWon++
-    msg = `${crit ? 'CRITICAL! ' : ''}You beat ${r.name} and took ${money(stolen)}. +${xp} XP, -${taken} HP.`
+    msg = `${crit ? 'CRITICAL! ' : ''}${isRevenge ? 'REVENGE! ' : ''}You beat ${r.name} and took ${money(stolen)}. +${xp} XP, -${taken} HP.`
+    if (isRevenge) s.revenge = s.revenge.filter((x) => x.id !== r.id)
     // Fight Club exclusive contraband drop
     if (Math.random() < 0.06 * (1 + (pk.loot || 0))) {
       const c = Math.random() < 0.6 ? 'briefcase' : 'firearms'
@@ -763,5 +771,31 @@ export function attackBoss(state, districtId) {
   }
   s.bosses[districtId] = bs
   gainXp(s, xp)
+  return s
+}
+
+// ---------- save backup codes ----------
+const B64_PREFIX = 'SYNDICATE1:'
+export function exportSave(s) {
+  const { toast: _t, ...rest } = s
+  const bytes = new TextEncoder().encode(JSON.stringify(rest))
+  let bin = ''
+  bytes.forEach((b) => { bin += String.fromCharCode(b) })
+  return B64_PREFIX + btoa(bin)
+}
+export function importSave(code) {
+  const raw = String(code || '').trim()
+  if (!raw.startsWith(B64_PREFIX)) throw new Error('That is not a Syndicate City backup code.')
+  let s
+  try {
+    const bin = atob(raw.slice(B64_PREFIX.length))
+    s = JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0))))
+  } catch {
+    throw new Error('The backup code is damaged or incomplete.')
+  }
+  if (!s || s.version !== SAVE_VERSION || !getFaction(s.factionId) || typeof s.level !== 'number') throw new Error('The backup code is not a valid save.')
+  s.achievements ??= {}; s.daily ??= { last: null, streak: 0 }; s.bosses ??= {}; s.revenge ??= []
+  s.lastTick = Date.now()
+  s.toast = { id: Date.now(), text: `Welcome back, ${s.bossName}. Save restored.`, kind: 'level' }
   return s
 }

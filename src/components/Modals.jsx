@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { exportSave } from '../game/engine'
+import { soundEnabled, setSoundEnabled } from '../game/sound'
 import { ArrowRight, Coins, Zap, Grab, Package, FlaskConical, Landmark, Stethoscope } from 'lucide-react'
 import { getFaction, formatPerk, RANK_LEVELS } from '../data/factions'
 import {
@@ -140,7 +142,34 @@ export function LogModal({ open, onClose, s }) {
   )
 }
 
-export function SettingsModal({ open, onClose, s, onReset }) {
+export function BackupPanel({ s, onRestore }) {
+  const [code, setCode] = useState('')
+  const [msg, setMsg] = useState(null)
+  const copy = async () => {
+    const text = exportSave(s)
+    try { await navigator.clipboard.writeText(text); setMsg({ ok: true, t: 'Backup code copied. Paste it somewhere safe.' }) }
+    catch { setCode(text); setMsg({ ok: true, t: 'Copy the code from the box below.' }) }
+  }
+  const restore = () => {
+    try { onRestore(code); setMsg(null); setCode('') } catch (e) { setMsg({ ok: false, t: e.message }) }
+  }
+  return (
+    <div className="rounded-lg border border-line bg-black/20 p-3">
+      <div className="text-sm font-semibold text-stone-200">Save Backup</div>
+      <p className="mt-1 text-xs text-stone-400">Saves live in this browser only. Copy a backup code to move your boss to another device or keep it safe.</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {s && <button className="classic-btn classic-btn-gold" onClick={copy}>Copy Backup Code</button>}
+      </div>
+      <textarea value={code} onChange={(e) => setCode(e.target.value)} rows={3} placeholder="Paste a backup code here to restore it"
+        className="mt-2 w-full resize-none rounded border border-line bg-black/40 p-2 font-mono text-[11px] text-stone-300 outline-none focus:border-gold" />
+      <button className="classic-btn-dark mt-1" disabled={!code.trim()} onClick={restore}>Restore From Code</button>
+      {msg && <p className={`mt-1 text-xs ${msg.ok ? 'text-green-400' : 'text-red-400'}`}>{msg.t}</p>}
+    </div>
+  )
+}
+
+export function SettingsModal({ open, onClose, s, onReset, onRestore }) {
+  const [sound, setSound] = useState(soundEnabled())
   const [confirm, setConfirm] = useState(false)
   const f = getFaction(s.factionId)
   return (
@@ -151,6 +180,11 @@ export function SettingsModal({ open, onClose, s, onReset }) {
         <div>Jobs done: {s.stats.jobs.toLocaleString()} · Lifetime earnings: {money(s.stats.cashEarned)}</div>
         <div className="text-xs text-stone-500">Progress saves automatically in this browser.</div>
       </div>
+      <label className="mt-4 flex cursor-pointer items-center justify-between rounded-lg border border-line bg-black/20 p-3">
+        <span className="text-sm font-semibold text-stone-200">Sound effects</span>
+        <input type="checkbox" checked={sound} onChange={(e) => { setSound(e.target.checked); setSoundEnabled(e.target.checked) }} className="h-4 w-4 accent-[var(--accent)]" />
+      </label>
+      <div className="mt-3"><BackupPanel s={s} onRestore={onRestore} /></div>
       <div className="mt-5 rounded-lg border border-red-900/60 bg-red-950/20 p-3">
         <div className="text-sm font-semibold text-red-300">Reset Save</div>
         <p className="mt-1 text-xs text-stone-400">Deletes this boss and starts over at faction selection. This can't be undone.</p>

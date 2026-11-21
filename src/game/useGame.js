@@ -41,7 +41,12 @@ export function useGame() {
     dispatch({ type: 'INIT', state: s })
   }, [])
   const reset = useCallback(() => { E.clearSave(); dispatch({ type: 'INIT', state: null }) }, [])
+  const restore = useCallback((code) => {
+    const s = E.importSave(code) // throws with a readable message on bad input
+    E.saveGame(s)
+    dispatch({ type: 'INIT', state: s })
+  }, [])
 
   const derived = useMemo(() => (state ? E.derive(state) : null), [state])
-  return { state, derived, run, start, reset }
+  return { state, derived, run, start, reset, restore }
 }
