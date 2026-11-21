@@ -6,6 +6,7 @@ import { markRead, collectionReady, claimableCount } from './game/engine'
 import { COLLECTIONS } from './data/content'
 import { ASSET_MAP } from './assetMap'
 import FactionSelect from './components/FactionSelect'
+import UpdateBanner from './components/UpdateBanner'
 import Header from './components/Header'
 import { TABS } from './components/tabs.js'
 import { Toast } from './components/ui'
@@ -27,7 +28,7 @@ export default function App() {
   const [modal, setModal] = useState(null)
   useEffect(() => { playForToast(s?.toast) }, [s?.toast?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!s) return <FactionSelect onStart={(name, id) => { start(name, id); setTab('jobs') }} onRestore={restore} />
+  if (!s) return <><UpdateBanner /><FactionSelect onStart={(name, id) => { start(name, id); setTab('jobs') }} onRestore={restore} /></>
 
   const f = getFaction(s.factionId)
   const View = TAB_VIEWS[tab]
@@ -66,6 +67,7 @@ export default function App() {
       <LogModal open={modal === 'log'} onClose={close} s={s} />
       <SettingsModal open={modal === 'settings'} onClose={close} s={s} onReset={() => { close(); reset() }} onRestore={(code) => { restore(code); close() }} />
       <Toast toast={s.toast} />
+      <UpdateBanner />
     </div>
   )
 }

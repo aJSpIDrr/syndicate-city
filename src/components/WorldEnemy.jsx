@@ -17,8 +17,13 @@ export default function WorldEnemy({ s, run }) {
   const now = Date.now()
   if (s.level < WORLD.unlockLevel) {
     return (
-      <div className="box flex items-center gap-3 p-3 text-[12px] text-stone-400">
-        <Lock size={16} /> World Enemies start roaming the city at Level {WORLD.unlockLevel}.
+      <div className="box flex items-center gap-3 border-red-900/60 p-3" style={{ background: 'linear-gradient(90deg, rgba(90,15,15,.45), transparent)' }}>
+        <Skull size={28} className="shrink-0 text-red-500/70" />
+        <div className="text-[12px]">
+          <div className="font-bold uppercase tracking-wider text-red-300">World Enemy</div>
+          <div className="text-stone-300">Roaming gangs with a crew and a powerful leader that the whole city hunts. They appear here from <b>Level {WORLD.unlockLevel}</b> (you're Level {s.level}).</div>
+        </div>
+        <Lock size={16} className="ml-auto shrink-0 text-stone-500" />
       </div>
     )
   }

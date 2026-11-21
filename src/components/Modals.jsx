@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { exportSave } from '../game/engine'
 import { soundEnabled, setSoundEnabled } from '../game/sound'
+import { BUILD } from './UpdateBanner'
 import { ArrowRight, Coins, Zap, Grab, Package, FlaskConical, Landmark, Stethoscope } from 'lucide-react'
 import { getFaction, formatPerk, RANK_LEVELS } from '../data/factions'
 import {
@@ -178,7 +179,7 @@ export function SettingsModal({ open, onClose, s, onReset, onRestore }) {
         <div>Boss: <b>{s.bossName}</b></div>
         <div>Faction: <b style={{ color: f.accent }}>{f.name}</b></div>
         <div>Jobs done: {s.stats.jobs.toLocaleString()} · Lifetime earnings: {money(s.stats.cashEarned)}</div>
-        <div className="text-xs text-stone-500">Progress saves automatically in this browser.</div>
+        <div className="text-xs text-stone-500">Progress saves automatically in this browser. Version {BUILD}</div>
       </div>
       <label className="mt-4 flex cursor-pointer items-center justify-between rounded-lg border border-line bg-black/20 p-3">
         <span className="text-sm font-semibold text-stone-200">Sound effects</span>
