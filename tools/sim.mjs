@@ -112,6 +112,16 @@ for (let step = 0; step < steps; step++) {
     }
   }
 
+  // World Enemy first (uses stamina + 5 energy per hit)
+  for (let guard = 0; guard < 40; guard++) {
+    const w = s.world
+    if (!w || w.defeated || w.escaped || s.stamina < 1 || s.energy < 5) break
+    if (s.health < E.HOSPITAL_THRESHOLD) { s = E.healAtDoctor(s); if (s.health < E.HOSPITAL_THRESHOLD) break }
+    const lvl = s.level
+    s = E.attackWorld(s)
+    if (s.level > lvl) for (let L = lvl + 1; L <= s.level; L++) levelAt[L] ??= (clock - s.createdAt) / 3600000
+  }
+
   // Fights
   for (let guard = 0; guard < 50 && s.stamina > 0; guard++) {
     if (s.health < E.HOSPITAL_THRESHOLD) { s = E.healAtDoctor(s); if (s.health < E.HOSPITAL_THRESHOLD) break }
@@ -157,3 +167,4 @@ if (process.env.DEBUG_BOSS) for (const id of Object.keys(BOSSES)) {
   const st = E.bossStats(id)
   console.log(id, 'unlocked', E.bossUnlocked(s, id), 'state', JSON.stringify(E.bossState(s, id)), 'bossDef', st.def, 'stars', JOBS.filter((j) => j.district === id).map((j) => s.mastery[j.id]?.star || 0).join(','))
 }
+console.log('World Enemy leaders defeated:', s.stats.worldKills || 0, '· trophies:', Object.keys(s.inventory).filter((k) => k.startsWith('w_')).join(', ') || 'none')

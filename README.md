@@ -40,6 +40,7 @@ The game will then be live at `https://ajspidrr.github.io/syndicate-city/`.
 - **Perks & Boosts** (Gold): 12 passive perks with 5 levels each that stack on faction rank perks, and 7 timed active boosts (double cash/XP, +25% attack/defense, raid shield, loot, fast energy, medic).
 - **Missions & Rewards**: a 7-day daily tribute streak, mentor orders for new players, and 25 achievements paying Gold and cash.
 - **Repeat jobs**: x5 button on every unlocked job.
+- **World Enemy**: a roaming crew (4–6 lieutenants + a leader with a huge health pool) that moves district every 2h and escapes after 12h. Each attack costs 1 Stamina + 5 Energy; rival bosses chip in, but only you can finish the leader. Home-turf bonus where you've beaten the district boss. Cash/Gold per lieutenant, big payout + one-off trophy per gang.
 - **Revenge list**: rivals who raid you appear in the Fight Club for 24h; beating them pays +50% cash and XP.
 - **Save backup**: copy a backup code in Settings and restore it on any device (also from the start screen).
 - **Sound effects** (WebAudio, no files) with a mute switch in Settings.

@@ -38,7 +38,7 @@ export default function VaultTab({ s, run }) {
                 </div>
                 <div className="text-[12px] font-bold leading-tight text-stone-100">{t.name}</div>
                 <div className="text-[11px] text-stone-400">{t.atk} Atk / {t.def} Def · {t.category}</div>
-                <div className="text-[10px] text-stone-500">{owned ? 'Equipped automatically' : `Beat ${BOSSES[district.id].name.split(',')[0]} (${district.name})`}</div>
+                <div className="text-[10px] text-stone-500">{owned ? 'Equipped automatically' : t.source || `Beat ${BOSSES[district.id].name.split(',')[0]} (${district.name})`}</div>
               </div>
             )
           })}

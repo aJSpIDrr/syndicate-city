@@ -42,6 +42,7 @@ export default function App() {
     realestate: s.pendingIncome >= 1 && d.grossIncome > 0 && s.pendingIncome >= d.grossIncome * 0.5 ? 1 : 0,
     vault: COLLECTIONS.filter((c) => collectionReady(s, c)).length,
     missions: claimableCount(s),
+    fight: s.world && !s.world.defeated && !s.world.escaped ? 1 : 0,
   }
 
   return (

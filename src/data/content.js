@@ -258,3 +258,31 @@ export const ACTIVE_BOOSTS = [
   boost('b_rush', 'Rush Hour', 'Energy refills twice as fast.', { energyRegen: 1 }, 60, 15),
   boost('b_medic', 'Medic on Call', 'Instant full heal, then Health refills 3x faster.', { healthRegen: 2 }, 60, 8, { heal: true }),
 ]
+
+// ---- World Enemies: roaming crews anyone can attack (Fight Club) ----
+export const WORLD = {
+  unlockLevel: 4, lifetimeHours: 12, moveEveryHours: 2, cooldownMinutes: 30,
+  npcPctPerHour: 0.05, // other bosses chip away this share of total HP per hour
+  energy: 5, stamina: 1, turfBonus: 0.15,
+}
+const wtrophy = (id, category, name, atk, def, sprite, source) => ({ id, category, name, rarity: 'legendary', atk, def, price: 0, upkeep: 0, unique: true, sprite, source })
+export const WORLD_ENEMIES = [
+  { id: 'blackhand', name: 'The Black Hand', faction: 'families', size: 5, leader: 'Don Vittorio "The Black Hand"', blurb: 'An old-world extortion ring sending threat letters across every city.', trophy: 'w_blackhand' },
+  { id: 'ironcrown', name: 'The Iron Crown Firm', faction: 'firm', size: 4, leader: 'The Iron Duke', blurb: 'Bare-knuckle enforcers who rob banks in broad daylight.', trophy: 'w_ironcrown' },
+  { id: 'redlotus', name: 'Red Lotus Assassins', faction: 'yakuza', size: 5, leader: 'Lady Kurenai', blurb: 'Silent killers for hire, leaving a red lotus at every job.', trophy: 'w_redlotus' },
+  { id: 'ninedragons', name: 'The Nine Dragons', faction: 'triad', size: 6, leader: 'Grandmaster Long', blurb: 'A secret society flooding the streets with counterfeit gold.', trophy: 'w_ninedragons' },
+  { id: 'goldreef', name: 'Gold Reef Mercenaries', faction: 'syndicate', size: 5, leader: 'Colonel Botha', blurb: 'A private army hijacking bullion convoys on every continent.', trophy: 'w_goldreef' },
+  { id: 'fantasmas', name: 'Los Fantasmas', faction: 'sinaloa', size: 6, leader: 'El Fantasma', blurb: 'A ghost cartel that strikes at night and vanishes by dawn.', trophy: 'w_fantasmas' },
+]
+ITEMS.push(
+  wtrophy('w_blackhand', 'weapon', "Don Vittorio's Lupara", 70, 34, 'shotgun', 'Defeat The Black Hand (World Enemy)'),
+  wtrophy('w_ironcrown', 'armor', 'Iron Crown Greatcoat', 26, 88, 'trench', 'Defeat The Iron Crown Firm (World Enemy)'),
+  wtrophy('w_redlotus', 'weapon', 'Red Lotus Kunai Set', 82, 28, 'switchblade', 'Defeat the Red Lotus Assassins (World Enemy)'),
+  wtrophy('w_ninedragons', 'vehicle', 'Nine Dragons War Junk', 72, 70, 'speedboat', 'Defeat The Nine Dragons (World Enemy)'),
+  wtrophy('w_goldreef', 'vehicle', 'Gold Reef Armored Truck', 64, 92, 'armoredsedan', 'Defeat the Gold Reef Mercenaries (World Enemy)'),
+  wtrophy('w_fantasmas', 'armor', 'Ghost Cartel Night Suit', 40, 96, 'tacsuit', 'Defeat Los Fantasmas (World Enemy)'),
+)
+ACHIEVEMENTS.push(
+  ach('world1', 'Public Enemy Hunter', 'Take down a World Enemy leader.', 1, (s) => s.stats.worldKills || 0, { gold: 10, cash: 10000 }),
+  ach('world10', 'Scourge of the Underworld', 'Take down 10 World Enemy leaders.', 10, (s) => s.stats.worldKills || 0, { gold: 40 }),
+)

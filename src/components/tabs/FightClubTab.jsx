@@ -2,6 +2,7 @@ import { RefreshCw, Swords, Stethoscope, Star, Flame } from 'lucide-react'
 import { getFaction } from '../../data/factions'
 import { attackRival, refreshRivals, healAtDoctor, money, fmt, respectOf, cityRank, HOSPITAL_THRESHOLD } from '../../game/engine'
 import Avatar from '../Avatar'
+import WorldEnemy from '../WorldEnemy'
 import { Section, Stat, Bar } from '../ui'
 
 function odds(my, their) {
@@ -39,6 +40,8 @@ export default function FightClubTab({ s, d, run }) {
           <button className="classic-btn classic-btn-gold" disabled={s.cash < docCost} onClick={() => run(healAtDoctor)}>Street Doctor · {money(docCost)}</button>
         </div>
       )}
+
+      <WorldEnemy s={s} run={run} />
 
       {revenge.length > 0 && (
         <Section flush title={<span className="flex items-center gap-1.5 text-red-400"><Flame size={15} /> Revenge List</span>}

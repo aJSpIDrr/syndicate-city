@@ -2,7 +2,7 @@
 import { FACTIONS, getFaction, rankIndexForLevel, RIVAL_NAMES, weaponName } from '../data/factions.js'
 import {
   ITEMS, getItem, SIG_TIERS, JOBS, DISTRICTS, PROPERTIES, CONTRABAND, COLLECTIONS, MASTERY_REWARD, getContraband,
-  BOSSES, ACHIEVEMENTS, DAILY_GOLD, PASSIVE_PERKS, ACTIVE_BOOSTS, perkCost,
+  BOSSES, ACHIEVEMENTS, DAILY_GOLD, PASSIVE_PERKS, ACTIVE_BOOSTS, perkCost, WORLD, WORLD_ENEMIES,
 } from '../data/content.js'
 
 export const SAVE_KEY = 'syndicate-city-save-v1'
@@ -224,6 +224,8 @@ export function tick(state, now = Date.now()) {
     ? Math.min(BALANCE.raidMaxOffline, Math.floor((dt / BALANCE.raidEverySecs) * Math.random() * 2))
     : (Math.random() < dt / BALANCE.raidEverySecs ? 1 : 0)
   for (let i = 0; i < raids; i++) incomingRaid(s, d)
+
+  worldTick(s, now, dt)
 
   // Refresh the rival board every 10 minutes.
   if (now - s.rivalsRefreshedAt > 10 * 60 * 1000) { s.rivals = makeRivals(s); s.rivalsRefreshedAt = now }
@@ -860,5 +862,120 @@ export function activateBoost(state, id) {
   if (b.heal) { s.health = derive(s).maxHealth; s.regen.health = 0 }
   toast(s, `${b.name} active for ${b.minutes} more minutes.`, 'level')
   log(s, `Activated ${b.name} (${b.gold} Gold).`, 'info')
+  return s
+}
+
+// ---------- World Enemy (roaming crew) ----------
+const H = 3600000
+export function worldTemplate(w) { return WORLD_ENEMIES.find((t) => t.id === w?.enemyId) }
+export function worldTarget(w) {
+  const i = w.members.findIndex((m) => m.hp > 0)
+  return i >= 0 ? { kind: 'member', index: i, unit: w.members[i] } : { kind: 'leader', unit: w.leader }
+}
+export function worldTotals(w) {
+  const max = w.members.reduce((t, m) => t + m.max, 0) + w.leader.max
+  const left = w.members.reduce((t, m) => t + Math.max(0, m.hp), 0) + Math.max(0, w.leader.hp)
+  return { max, left }
+}
+
+function spawnWorld(s, now) {
+  const t = pick(WORLD_ENEMIES.filter((x) => x.id !== s.world?.enemyId))
+  const d = derive(s)
+  const p = Math.max(60, d.pAtk) // HP scales with the player so every enemy is a long but fair fight
+  const rank = Math.min(8, rankIndexForLevel(s.level) + 1)
+  const members = Array.from({ length: t.size }, () => {
+    const hp = Math.round(p * rand(6, 8))
+    return { name: rivalName(t.faction), rank, hp, max: hp }
+  })
+  const lhp = Math.round(p * 36)
+  const districts = DISTRICTS.map((x) => x.id)
+  s.world = {
+    enemyId: t.id, faction: t.faction, members, leader: { name: t.leader, rank: 9, hp: lhp, max: lhp },
+    def: Math.round(d.pAtk * rand(0.85, 1.0)), atk: Math.round(d.pDef * 1.1),
+    location: pick(districts), nextMove: now + WORLD.moveEveryHours * H,
+    spawnedAt: now, expiresAt: now + WORLD.lifetimeHours * H,
+    damage: 0, npcDamage: 0, defeated: false, escaped: false, cooldownUntil: 0,
+  }
+  log(s, `WORLD ENEMY: ${t.name} has been spotted in ${DISTRICTS.find((x) => x.id === s.world.location).name}. Every boss in the city is going after them.`, 'level')
+  s.unread++
+}
+
+function worldTick(s, now, dt) {
+  if (s.level < WORLD.unlockLevel) return
+  const w = s.world
+  if (!w || ((w.defeated || w.escaped) && now >= w.cooldownUntil)) { spawnWorld(s, now); return }
+  if (w.defeated || w.escaped) return
+  // Other bosses chip away (members first; they never land the final blow on the leader)
+  const live = Math.min(dt, Math.max(0, (w.expiresAt - (now - dt * 1000)) / 1000))
+  let npc = worldTotals(w).max * WORLD.npcPctPerHour * live / 3600
+  w.npcDamage += npc
+  for (const m of w.members) { if (npc <= 0) break; const take = Math.min(m.hp, npc); m.hp -= take; npc -= take }
+  if (npc > 0) w.leader.hp = Math.max(w.leader.max * 0.05, w.leader.hp - npc)
+  // Roam
+  while (now >= w.nextMove && now < w.expiresAt) {
+    const others = DISTRICTS.filter((x) => x.id !== w.location)
+    w.location = pick(others).id
+    w.nextMove += WORLD.moveEveryHours * H
+  }
+  // Escape
+  if (now >= w.expiresAt) {
+    w.escaped = true
+    w.cooldownUntil = now + WORLD.cooldownMinutes * 60000
+    log(s, `${worldTemplate(w).name} slipped out of the city before anyone could finish them.`, 'loss')
+  }
+}
+
+export function worldTurf(s, w) { return !!s.bosses?.[w.location]?.defeated }
+
+export function attackWorld(state) {
+  const w0 = state.world
+  if (!w0 || w0.defeated || w0.escaped) return state
+  const s = clone(state)
+  const w = s.world
+  const t = worldTemplate(w)
+  if (s.stamina < WORLD.stamina) { toast(s, 'Not enough Stamina.', 'error'); return s }
+  if (s.energy < WORLD.energy) { toast(s, `Need ${WORLD.energy} Energy.`, 'error'); return s }
+  if (s.health < HOSPITAL_THRESHOLD) { toast(s, 'You are too injured. Visit the Street Doctor.', 'error'); return s }
+  const d = derive(s)
+  s.stamina -= WORLD.stamina
+  s.energy -= WORLD.energy
+  const crit = Math.random() < d.crit
+  const turf = worldTurf(s, w) ? 1 + WORLD.turfBonus : 1
+  const ratio = clamp(d.pAtk / Math.max(1, w.def * (1 - d.pen)), 0.5, 1.4)
+  const dmg = Math.max(1, Math.round(d.pAtk * rand(0.75, 1.1) * (crit ? 1.5 : 1) * ratio * turf))
+  const taken = Math.round(rand(3, 8) * clamp(w.atk / Math.max(1, d.pDef), 0.5, 2))
+  const target = worldTarget(w)
+  target.unit.hp = Math.max(0, target.unit.hp - dmg)
+  w.damage += dmg
+  s.health = Math.max(0, s.health - taken)
+  let xp = 4 + Math.floor(s.level / 2)
+  let msg = `${crit ? 'CRITICAL! ' : ''}You hit ${target.unit.name} for ${fmt(dmg)}${turf > 1 ? ' (home turf)' : ''}. -${taken} HP.`
+  if (target.unit.hp <= 0) {
+    if (target.kind === 'member') {
+      const cash = s.level * 250
+      s.cash += cash; s.stats.cashEarned += cash; s.gold += 1; xp += 10 + s.level
+      msg = `${target.unit.name} of ${t.name} is down! +${money(cash)}, +1 Gold.`
+      log(s, msg, 'win')
+      if (w.members.every((m) => m.hp <= 0)) msg += ` ${w.leader.name} has nowhere left to hide.`
+    } else {
+      const gold = 10 + Math.floor(s.level / 3)
+      const cash = s.level * 1500
+      s.gold += gold; s.cash += cash; s.stats.cashEarned += cash; xp += 40 + s.level * 2
+      s.stats.worldKills = (s.stats.worldKills || 0) + 1
+      w.defeated = true
+      w.cooldownUntil = Date.now() + WORLD.cooldownMinutes * 60000
+      const share = Math.round((w.damage / Math.max(1, w.damage + w.npcDamage)) * 100)
+      msg = `You took down ${w.leader.name}! ${t.name} is finished. +${gold} Gold, +${money(cash)}. Your share: ${share}%.`
+      if (!(s.inventory[t.trophy] > 0)) {
+        s.inventory[t.trophy] = 1
+        msg += ` Trophy: ${getItem(t.trophy).name}!`
+      }
+      log(s, msg, 'level')
+    }
+    toast(s, msg, target.kind === 'leader' ? 'level' : 'win')
+  } else {
+    toast(s, msg, 'win')
+  }
+  gainXp(s, xp)
   return s
 }

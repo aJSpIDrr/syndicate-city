@@ -83,6 +83,14 @@ Premium gear bought with Gold. Make it look expensive: gold, chrome, gems, a cri
 | 2 | Mink Fur Overcoat · Titanium Weave Suit · Bulletproof Tuxedo · Juggernaut Bomb Suit |
 | 3 | Gold Leaf Roadster · Armored Presidential Limo · Midnight Mega Yacht · Private Smuggling Jet |
 
+## Sheet 10 — World Enemies (4 columns × 3 rows), square cells (400 × 400 each)
+Leaders use the faction portrait art until these exist; trophies use stand-in drawings.
+| Row | Cells |
+| --- | --- |
+| 1 | Don Vittorio "The Black Hand" · The Iron Duke · Lady Kurenai · Grandmaster Long |
+| 2 | Colonel Botha · El Fantasma · Don Vittorio's Lupara · Iron Crown Greatcoat |
+| 3 | Red Lotus Kunai Set · Nine Dragons War Junk · Gold Reef Armored Truck · Ghost Cartel Night Suit |
+
 ## Logo — 1 separate image, 1600 × 400, transparent PNG
 "SYNDICATE CITY" in gold Art Deco lettering. Used on the title screen and header.
 
