@@ -59,7 +59,9 @@ export default function JobsTab({ s, d, run }) {
             return (
               <div key={job.id} className="row flex-wrap sm:flex-nowrap">
                 <div className="relative hidden h-14 w-24 shrink-0 overflow-hidden rounded border border-black sm:block">
-                  {banner ? <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover" /> : <DistrictScene id={job.district} align={['xMinYMid', 'xMidYMid', 'xMaxYMid'][ji % 3]} />}
+                  {banner ? <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                    : ASSET_MAP.districts[job.district] ? <img src={ASSET_MAP.districts[job.district]} alt="" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: ['0% 60%', '50% 60%', '100% 60%'][ji % 3] }} />
+                    : <DistrictScene id={job.district} align={['xMinYMid', 'xMidYMid', 'xMaxYMid'][ji % 3]} />}
                 </div>
                 <div className="min-w-0 flex-1 basis-full sm:basis-auto">
                   <div className="flex items-center gap-2">

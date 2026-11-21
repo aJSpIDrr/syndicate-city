@@ -32,6 +32,13 @@ for (const f of ['families', 'syndicate', 'firm', 'triad']) fill(f, 'rank', ASSE
 for (const f of ['families', 'syndicate', 'firm']) fill(f, 'weapon', ASSET_MAP.signatureWeaponTiers)
 fill('triad', 'blade', ASSET_MAP.signatureWeaponTiers) // cleaver Mk I–V, butterfly knife Mk VI–X
 
+// Backgrounds & scenes (public/art/scenes/)
+ASSET_MAP.pageBackgrounds.families = './art/scenes/families-bg.jpg'
+ASSET_MAP.headerBanners.families = './art/scenes/families-header.jpg'
+ASSET_MAP.factionBanners.families = './art/scenes/families-card.jpg'
+ASSET_MAP.districts.docks = './art/scenes/docks.jpg'
+ASSET_MAP.districts.midtown = './art/scenes/midtown.jpg'
+
 export const sigWeaponUrl = (factionId, tier) => ASSET_MAP.signatureWeaponTiers[factionId]?.[tier] || ASSET_MAP.signatureWeapons[factionId] || null
 
 export const avatarUrl = (factionId, rank /* 0-based */) => ASSET_MAP.rankAvatars[factionId]?.[rank + 1] || null

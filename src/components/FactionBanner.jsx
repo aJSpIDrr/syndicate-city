@@ -71,6 +71,7 @@ export default function FactionBanner({ factionId, height = 120, children, heade
         </svg>
       )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+      {header && url && <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/20" />}
       <div className="relative h-full">{children}</div>
     </div>
   )
