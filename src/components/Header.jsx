@@ -57,7 +57,7 @@ export default function Header({ s, d, tab, setTab, onOpen, badges, newUpdate })
 
       {/* Mobile top bar */}
       <div className="flex items-center gap-2 border-b border-black px-2 py-1.5 sm:hidden" style={{ background: `linear-gradient(90deg, ${f.deep}, #0B0C0E)` }}>
-        <button onClick={() => setTab('family')} aria-label="Open Family & Ranks"><Avatar factionId={s.factionId} rank={d.rank} size={38} /></button>
+        <button onClick={() => setTab('family')} aria-label="Open Boss & Ranks"><Avatar factionId={s.factionId} rank={d.rank} size={38} /></button>
         <div className="min-w-0 flex-1">
           <div className="font-display text-sm font-extrabold tracking-widest gold-shine">SYNDICATE CITY</div>
           <div className="truncate text-[11px] font-semibold" style={{ color: f.accent }}>{s.bossName} · {f.ranks[d.rank].title} · Lv {s.level}</div>
@@ -72,7 +72,7 @@ export default function Header({ s, d, tab, setTab, onOpen, badges, newUpdate })
       {/* Stat strip */}
       <div className="border-y border-black bg-gradient-to-b from-[#2A2D33] to-[#17191D]">
         <div className="mx-auto flex max-w-[1000px] items-stretch">
-          <button onClick={() => setTab('family')} className="hidden shrink-0 items-center gap-2 border-r border-black/50 py-1 pl-2 pr-3 text-left sm:flex" aria-label="Open Family & Ranks">
+          <button onClick={() => setTab('family')} className="hidden shrink-0 items-center gap-2 border-r border-black/50 py-1 pl-2 pr-3 text-left sm:flex" aria-label="Open Boss & Ranks">
             <Avatar factionId={s.factionId} rank={d.rank} size={46} />
             <div className="min-w-0">
               <div className="max-w-[140px] truncate text-[13px] font-bold text-stone-100">{s.bossName}</div>

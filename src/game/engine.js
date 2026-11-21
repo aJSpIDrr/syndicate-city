@@ -316,7 +316,7 @@ export function districtUnlocked(s, districtId) {
 export function jobBlockers(s, job) {
   const out = []
   if (!districtUnlocked(s, job.district)) out.push(`Unlocks at Level ${DISTRICTS.find((d) => d.id === job.district).level}`)
-  if (job.req.family && s.family < job.req.family) out.push(`Family Size ${job.req.family}+`)
+  if (job.req.family && s.family < job.req.family) out.push(`Crew Size ${job.req.family}+`)
   for (const [id, qty] of Object.entries(job.req.items || {})) {
     if ((s.inventory[id] || 0) < qty) out.push(`${qty}x ${getItem(id).name}`)
   }
@@ -390,8 +390,8 @@ export function hireCrew(state, count) {
     s.family++
     hired++
   }
-  if (hired) toast(s, `Recruited ${hired} crew for ${money(spent)}. Family Size: ${s.family}.`, 'win')
-  else toast(s, s.family >= MAX_FAMILY ? 'Your Family is at full strength.' : 'Not enough cash on hand.', 'error')
+  if (hired) toast(s, `Recruited ${hired} crew for ${money(spent)}. Crew Size: ${s.family}.`, 'win')
+  else toast(s, s.family >= MAX_FAMILY ? 'Your crew is at full strength.' : 'Not enough cash on hand.', 'error')
   return s
 }
 

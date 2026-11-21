@@ -1,5 +1,5 @@
-// Clan engine: your crime family of AI members. Everything here works on a cloned state and
-// is called from the main engine (tick, perks, events) or from the Clan screen.
+// Family engine: your crime family of AI members. Everything here works on a cloned state and
+// is called from the main engine (tick, perks, events) or from the Family screen.
 import { FACTIONS, getFaction } from '../data/factions.js'
 import { DISTRICTS } from '../data/content.js'
 import {
@@ -24,7 +24,7 @@ export function clanSlots(c) {
 }
 export function memberById(c, id) { return c.members.find((m) => m.id === id) }
 
-/** Personal bonuses from clan positions and upgrades (merged into perksOf). */
+/** Personal bonuses from family positions and upgrades (merged into perksOf). */
 export function clanPerks(s) {
   const out = {}
   const c = s.clan
@@ -67,10 +67,10 @@ export function foundClan(state, name, tag, crest) {
   const n = cleanName(name, 24), t = cleanName(tag, 4).toUpperCase().replace(/\s/g, '')
   if (state.clan) return state
   const s = clone(state)
-  if (s.level < CLAN.foundLevel) { toast(s, `You can found a clan at Level ${CLAN.foundLevel}.`, 'error'); return s }
-  if (n.length < 3) { toast(s, 'Give your clan a name of at least 3 letters.', 'error'); return s }
+  if (s.level < CLAN.foundLevel) { toast(s, `You can found a family at Level ${CLAN.foundLevel}.`, 'error'); return s }
+  if (n.length < 3) { toast(s, 'Give your family a name of at least 3 letters.', 'error'); return s }
   if (t.length < 2) { toast(s, 'The tag needs 2–4 letters.', 'error'); return s }
-  if (s.cash < CLAN.foundCost) { toast(s, `Founding a clan costs ${money(CLAN.foundCost)} cash on hand.`, 'error'); return s }
+  if (s.cash < CLAN.foundCost) { toast(s, `Founding a family costs ${money(CLAN.foundCost)} cash on hand.`, 'error'); return s }
   s.cash -= CLAN.foundCost
   const turf = {}
   for (const d of DISTRICTS) turf[d.id] = { control: 0, rival: pick(RIVAL_CLANS).id }
@@ -85,7 +85,7 @@ export function foundClan(state, name, tag, crest) {
   ensureContracts(s)
   feed(s, null, `${s.bossName} founded ${n} [${t}]. The city has a new family.`, 'system')
   toast(s, `${n} [${t}] is founded. Recruit your first members.`, 'level')
-  log(s, `You founded the clan ${n} [${t}].`, 'level')
+  log(s, `You founded the family ${n} [${t}].`, 'level')
   return s
 }
 
@@ -114,7 +114,7 @@ export function hireRecruit(state, id) {
   const c = s.clan
   const m = c.recruits.find((x) => x.id === id)
   if (!m) return state
-  if (c.members.length >= clanSlots(c)) { toast(s, 'No free member slots. Level up the clan or build Barracks.', 'error'); return s }
+  if (c.members.length >= clanSlots(c)) { toast(s, 'No free member slots. Level up the family or build Barracks.', 'error'); return s }
   const cost = hireCost(m)
   if (s.cash < cost) { toast(s, `Signing ${m.name} costs ${money(cost)} cash on hand.`, 'error'); return s }
   s.cash -= cost
@@ -184,9 +184,9 @@ export function addClanXp(s, xp) {
   s.clan.xp += xp
   const after = clanLevel(s.clan).level
   if (after > before) {
-    feed(s, null, `${s.clan.name} reached clan level ${after}!`, 'system')
-    toast(s, `${s.clan.name} is now clan level ${after}! More member slots and upgrades unlocked.`, 'level')
-    log(s, `Your clan reached level ${after}.`, 'level')
+    feed(s, null, `${s.clan.name} reached family level ${after}!`, 'system')
+    toast(s, `${s.clan.name} is now family level ${after}! More member slots and upgrades unlocked.`, 'level')
+    log(s, `Your family reached level ${after}.`, 'level')
   }
 }
 
@@ -195,7 +195,7 @@ export function buyClanUpgrade(state, id) {
   const c = s.clan
   const lv = c.upgrades[id] || 0
   const u = CLAN_UPGRADES.find((x) => x.id === id)
-  if (lv >= clanLevel(c).level) { toast(s, 'Upgrades can\'t go above the clan level.', 'error'); return s }
+  if (lv >= clanLevel(c).level) { toast(s, 'Upgrades can\'t go above the family level.', 'error'); return s }
   const cost = upgradeCost(lv + 1)
   if (c.treasury < cost) { toast(s, `The treasury needs ${money(cost)}.`, 'error'); return s }
   c.treasury -= cost
@@ -254,7 +254,7 @@ export function declareWar(state, rivalId) {
   c.war = { rival: rivalId, startedAt: now, endsAt: now + WAR.hours * H, us: 0, them: 0, result: null, lastTick: now }
   feed(s, null, `${c.name} declared war on ${rival.name}! 24 hours. Every fight counts.`, 'war')
   toast(s, `War declared on ${rival.name}! Win fights, push turf and hit World Enemies to score.`, 'level')
-  log(s, `Your clan declared war on ${rival.name}.`, 'level')
+  log(s, `Your family declared war on ${rival.name}.`, 'level')
   return s
 }
 
@@ -312,7 +312,7 @@ export function collectHeist(state, runId) {
     if (h.reward.gold) s.gold += h.reward.gold
     addClanXp(s, h.reward.xp)
     for (const m of crew) m.loyalty = Math.min(100, m.loyalty + 6)
-    msg = `${h.name} SUCCEEDED! +${money(h.reward.cash)}${h.reward.gold ? `, +${h.reward.gold} Gold` : ''}, +${h.reward.xp} clan XP.`
+    msg = `${h.name} SUCCEEDED! +${money(h.reward.cash)}${h.reward.gold ? `, +${h.reward.gold} Gold` : ''}, +${h.reward.xp} family XP.`
     feed(s, crew[0], `We did it, ${s.bossName}! The ${h.name} went off without a hitch.`, 'heist')
     toast(s, msg, 'level')
   } else {
@@ -373,7 +373,7 @@ export function claimContract(state, id) {
   s.gold += r.gold
   s.clan.treasury += r.treasury
   addClanXp(s, r.xp)
-  toast(s, `Contract done: +${r.gold} Gold, +${money(r.treasury)} treasury, +${r.xp} clan XP.`, 'level')
+  toast(s, `Contract done: +${r.gold} Gold, +${money(r.treasury)} treasury, +${r.xp} family XP.`, 'level')
   return s
 }
 
@@ -411,10 +411,10 @@ export function clanTick(s, now, dt) {
       c.members = c.members.filter((x) => x.id !== m.id)
       for (const r of Object.keys(c.roles)) if (c.roles[r] === m.id) delete c.roles[r]
       feed(s, null, `${m.name} walked out on ${c.name}. Unpaid and unloved.`, 'leave')
-      log(s, `${m.name} left your clan over unpaid wages.`, 'loss')
+      log(s, `${m.name} left your family over unpaid wages.`, 'loss')
     }
   }
-  // Strategists train the clan
+  // Strategists train the family
   const strat = c.members.filter((m) => m.spec === 'strategist').reduce((t, m) => t + m.skill, 0)
   if (strat) addClanXp(s, strat * 4 * hours)
   // Turf: enforcers hold ground, rivals push back
@@ -461,13 +461,13 @@ function settleWar(s) {
     c.warsWon++
     w.result = { won: true, spoils }
     feed(s, null, `VICTORY! ${c.name} crushed ${rival.name} ${w.us} to ${w.them}. Spoils: ${money(spoils)}.`, 'war')
-    log(s, `Your clan won the war against ${rival.name} (${w.us}–${w.them}). +${WAR.winGold} Gold, ${money(spoils)} to the treasury.`, 'level')
+    log(s, `Your family won the war against ${rival.name} (${w.us}–${w.them}). +${WAR.winGold} Gold, ${money(spoils)} to the treasury.`, 'level')
   } else {
     c.warsLost++
     w.result = { won: false, spoils: 0 }
     for (const m of c.members) m.loyalty = Math.max(0, m.loyalty - 5)
     feed(s, null, `Defeat. ${rival.name} beat ${c.name} ${w.them} to ${w.us}.`, 'war')
-    log(s, `Your clan lost the war against ${rival.name} (${w.us}–${w.them}).`, 'loss')
+    log(s, `Your family lost the war against ${rival.name} (${w.us}–${w.them}).`, 'loss')
   }
   s.unread++
 }

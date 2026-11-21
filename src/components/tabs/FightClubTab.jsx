@@ -76,7 +76,7 @@ export default function FightClubTab({ s, d, run }) {
         right={<button className="classic-btn-dark" onClick={() => run(refreshRivals)}><RefreshCw size={12} /> New rivals</button>}
       >
         <div className="row hidden bg-black/40 py-1 sm:flex">
-          <span className="k flex-1">Boss</span><span className="k w-16 text-center">Level</span><span className="k w-16 text-center">Family</span><span className="k w-20 text-center">Odds</span><span className="w-24" />
+          <span className="k flex-1">Boss</span><span className="k w-16 text-center">Level</span><span className="k w-16 text-center">Crew</span><span className="k w-20 text-center">Odds</span><span className="w-24" />
         </div>
         <div>
           {s.rivals.map((r) => {
@@ -90,7 +90,7 @@ export default function FightClubTab({ s, d, run }) {
                   <div className="truncate font-bold text-stone-100">{r.name}</div>
                   <div className="truncate text-[11px]" style={{ color: f.accent }}>{f.ranks[r.rank].title} · {f.name}</div>
                   <div className="mt-0.5 w-24"><Bar value={r.health} max={100} color={down ? '#F87171' : '#4ADE80'} height={3} /></div>
-                  <div className="text-[11px] text-stone-400 sm:hidden">Lv {r.level} · Family {r.family} · <span style={{ color: o.color }}>{o.label}</span></div>
+                  <div className="text-[11px] text-stone-400 sm:hidden">Lv {r.level} · Crew {r.family} · <span style={{ color: o.color }}>{o.label}</span></div>
                 </div>
                 <span className="hidden w-16 text-center font-bold text-stone-200 sm:block">{r.level}</span>
                 <span className="hidden w-16 text-center text-stone-300 sm:block">{r.family}</span>

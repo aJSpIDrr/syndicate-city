@@ -55,7 +55,7 @@ export default function JobsTab({ s, d, run }) {
             const cMax = Math.floor(job.cashMax * (1 + (pk.jobCash || 0)))
             const xp = Math.round(job.xp * (1 + (pk.jobXp || 0)))
             const banner = ASSET_MAP.jobBanners[job.id]
-            const reqs = [job.req.family && `Family Size ${job.req.family}+`, ...Object.entries(job.req.items || {}).map(([id, q]) => `${q}x ${getItem(id).name}`)].filter(Boolean)
+            const reqs = [job.req.family && `Crew Size ${job.req.family}+`, ...Object.entries(job.req.items || {}).map(([id, q]) => `${q}x ${getItem(id).name}`)].filter(Boolean)
             return (
               <div key={job.id} className="row flex-wrap sm:flex-nowrap">
                 <div className="relative hidden h-14 w-24 shrink-0 overflow-hidden rounded border border-black sm:block">

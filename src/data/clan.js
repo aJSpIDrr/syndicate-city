@@ -1,12 +1,12 @@
-// Clan system data. A clan is your crime family: AI members, positions, treasury, upgrades,
-// turf, wars against rival clans, timed heists and daily contracts.
+// Family system data. A family is your crime family: AI members, positions, treasury, upgrades,
+// turf, wars against rival families, timed heists and daily contracts.
 
 export const CLAN = {
   foundLevel: 5,
   foundCost: 25000,
-  baseSlots: 4, // + 1 per 2 clan levels + Barracks
+  baseSlots: 4, // + 1 per 2 family levels + Barracks
   xpToLevel: [0, 400, 1200, 2800, 5500, 9500, 15500, 24000, 36000, 52000], // index = level - 1 (max level 10)
-  donationPerXp: 100, // $ donated per clan XP
+  donationPerXp: 100, // $ donated per family XP
   recruitRefreshHours: 6,
   wageHoursPerDay: 24,
   loyaltyLossPerHourUnpaid: 3,
@@ -16,9 +16,9 @@ export const CLAN = {
 
 export const SPECIALTIES = {
   earner: { name: 'Earner', desc: 'Brings money into the treasury every hour.', color: '#4ADE80' },
-  enforcer: { name: 'Enforcer', desc: 'Wins turf and scores points in clan wars.', color: '#F87171' },
+  enforcer: { name: 'Enforcer', desc: 'Wins turf and scores points in family wars.', color: '#F87171' },
   smuggler: { name: 'Smuggler', desc: 'Makes heists more likely to succeed.', color: '#60A5FA' },
-  strategist: { name: 'Strategist', desc: 'Earns extra clan XP and makes every heist a little safer.', color: '#C084FC' },
+  strategist: { name: 'Strategist', desc: 'Earns extra family XP and makes every heist a little safer.', color: '#C084FC' },
 }
 
 // Positions: one member each. Bonus = per x the member's skill (1–10), applied to you personally.
@@ -30,7 +30,7 @@ export const ROLES = [
   { id: 'treasurer', name: 'Treasurer', desc: 'Treasury income and property income', effects: { treasuryIncome: 0.05, propertyIncome: 0.01 } },
 ]
 
-// Upgrades bought from the treasury. Max level = clan level. Cost = base x growth^level.
+// Upgrades bought from the treasury. Max level = family level. Cost = base x growth^level.
 export const CLAN_UPGRADES = [
   { id: 'armory', name: 'Armory', desc: '+2% Attack per level', effects: { attack: 0.02 } },
   { id: 'safehouses', name: 'Safehouses', desc: '+2% Defense per level, and raids on you are rarer', effects: { defense: 0.02 } },
@@ -78,7 +78,7 @@ export const CONTRACTS = [
   { id: 'c_boss', text: 'Hit a district boss {n} times', event: 'boss', base: 4 },
 ]
 
-// Things members say in the clan feed. {name} = speaker, {boss} = you, {district} = random district.
+// Things members say in the family feed. {name} = speaker, {boss} = you, {district} = random district.
 export const CHATTER = {
   earner: ['Collections from {district} are in, {boss}. Treasury\'s looking healthy.', 'Found a new laundromat to wash our money through.', 'The numbers racket had a good night.'],
   enforcer: ['A rival crew tried their luck in {district}. They won\'t try again.', 'Say the word and I\'ll lean on whoever you want, {boss}.', 'Our boys are holding the line in {district}.'],

@@ -41,30 +41,30 @@ function Founding({ s, run }) {
   })
   return (
     <div className="space-y-3">
-      <Section title="Found Your Clan">
+      <Section title="Found Your Family">
         <div className="grid gap-4 md:grid-cols-[1fr_auto]">
           <div className="space-y-2 text-[13px] text-stone-300">
-            <p>Build a crime family of your own. Recruit AI mobsters, appoint an Underboss and Capos, fill the treasury, take turf from rival clans, go to war and pull off timed heists.</p>
+            <p>Build a crime family of your own. Recruit AI mobsters, appoint an Underboss and Capos, fill the treasury, take turf from rival families, go to war and pull off timed heists.</p>
             <ul className="grid gap-1 text-[12px] text-stone-400 sm:grid-cols-2">
-              <li>• Members earn, fight and talk in the clan feed</li>
+              <li>• Members earn, fight and talk in the family feed</li>
               <li>• Positions give you personal bonuses</li>
               <li>• Turf map: hold districts for income</li>
-              <li>• 24-hour wars against rival clans</li>
+              <li>• 24-hour wars against rival families</li>
               <li>• Timed heists with a hand-picked crew</li>
-              <li>• Daily contracts, clan levels and upgrades</li>
+              <li>• Daily contracts, family levels and upgrades</li>
             </ul>
             {locked ? (
               <div className="flex items-center gap-2 rounded border border-line bg-black/30 p-2 text-stone-400"><Lock size={14} /> Unlocks at Level {CLAN.foundLevel} (you're Level {s.level}).</div>
             ) : (
               <>
                 <div className="grid gap-2 sm:grid-cols-[1fr_110px]">
-                  <input value={name} onChange={(e) => setName(e.target.value.slice(0, 24))} placeholder="Clan name (e.g. The Iron Table)"
+                  <input value={name} onChange={(e) => setName(e.target.value.slice(0, 24))} placeholder="Family name (e.g. The Iron Table)"
                     className="rounded border border-line bg-black/40 px-3 py-2 text-stone-100 outline-none focus:border-gold" />
                   <input value={tag} onChange={(e) => setTag(e.target.value.toUpperCase().slice(0, 4))} placeholder="TAG"
                     className="rounded border border-line bg-black/40 px-3 py-2 font-bold tracking-widest text-stone-100 outline-none focus:border-gold" />
                 </div>
                 <button className="classic-btn classic-btn-gold" disabled={s.cash < CLAN.foundCost || name.trim().length < 3 || tag.trim().length < 2} onClick={() => run(foundClan, name, tag, crest)}>
-                  <Flag size={13} /> Found clan for {money(CLAN.foundCost)}
+                  <Flag size={13} /> Found family for {money(CLAN.foundCost)}
                 </button>
                 {s.cash < CLAN.foundCost && <span className="ml-2 text-[11px] text-red-400">Needs {money(CLAN.foundCost)} cash on hand.</span>}
               </>
@@ -89,7 +89,7 @@ function Founding({ s, run }) {
   )
 }
 
-// ---------- clan home ----------
+// ---------- family home ----------
 const SUBS = [['overview', 'Overview'], ['members', 'Members'], ['turf', 'Turf & War'], ['heists', 'Heists'], ['upgrades', 'Upgrades']]
 
 function ClanHome({ s, d, run }) {
@@ -103,7 +103,7 @@ function ClanHome({ s, d, run }) {
         <Crest crest={c.crest} size={64} tag={c.tag} />
         <div className="min-w-0 flex-1">
           <div className="font-display text-xl font-bold text-stone-100">{c.name} <span className="text-sm text-gold">[{c.tag}]</span></div>
-          <div className="text-[12px] text-stone-400">Clan level {lv.level} · {c.members.length}/{clanSlots(c)} members · {heldDistricts(c).length} districts held · Wars {c.warsWon}W–{c.warsLost}L</div>
+          <div className="text-[12px] text-stone-400">Family level {lv.level} · {c.members.length}/{clanSlots(c)} members · {heldDistricts(c).length} districts held · Wars {c.warsWon}W–{c.warsLost}L</div>
           <div className="mt-1 flex items-center gap-2">
             <div className="w-48"><Bar value={c.xp - lv.base} max={(lv.next || c.xp) - lv.base || 1} color="var(--accent)" height={5} /></div>
             <span className="text-[10px] text-stone-500">{lv.next ? `${fmt(c.xp - lv.base)}/${fmt(lv.next - lv.base)} XP` : 'Max level'}</span>
@@ -156,7 +156,7 @@ function Overview({ s, run }) {
             <button className="classic-btn" disabled={n <= 0 || s.cash <= 0} onClick={() => { run(donate, n); setAmt('') }}>Donate</button>
             <button className="classic-btn-dark" disabled={s.cash <= 0} onClick={() => run(donate, s.cash)}>All cash ({money(s.cash)})</button>
           </div>
-          <p className="mt-1 text-[11px] text-stone-500">Donations are tax-free and give 1 clan XP per {money(CLAN.donationPerXp)}. The treasury pays wages, upgrades, wars and heist prep.</p>
+          <p className="mt-1 text-[11px] text-stone-500">Donations are tax-free and give 1 family XP per {money(CLAN.donationPerXp)}. The treasury pays wages, upgrades, wars and heist prep.</p>
         </Section>
         <Section flush title="Daily Contracts">
           {contracts.list.map((k) => {
@@ -172,16 +172,16 @@ function Overview({ s, run }) {
               </div>
             )
           })}
-          <p className="px-3 py-2 text-[11px] text-stone-500">Each pays +{reward.gold} Gold, +{money(reward.treasury)} to the treasury and +{reward.xp} clan XP. New contracts every day.</p>
+          <p className="px-3 py-2 text-[11px] text-stone-500">Each pays +{reward.gold} Gold, +{money(reward.treasury)} to the treasury and +{reward.xp} family XP. New contracts every day.</p>
         </Section>
         {perkText.length > 0 && (
-          <Section title="Your Clan Bonuses">
+          <Section title="Your Family Bonuses">
             <div className="flex flex-wrap gap-1.5">{perkText.map((t) => <span key={t} className="chip border" style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }}>{t}</span>)}</div>
             <p className="mt-2 text-[11px] text-stone-500">From your positions and upgrades. Appoint skilled members to boost these.</p>
           </Section>
         )}
       </div>
-      <Section flush title="Clan Feed">
+      <Section flush title="Family Feed">
         <ul className="max-h-[520px] overflow-y-auto">
           {c.feed.map((f) => (
             <li key={f.id} className="row items-start">
@@ -267,7 +267,7 @@ function Members({ s, run }) {
             </div>
           </div>
         ))}
-        {slotsFull && <p className="px-3 py-2 text-[11px] text-red-400">All member slots are full. Level up the clan or build Barracks.</p>}
+        {slotsFull && <p className="px-3 py-2 text-[11px] text-red-400">All member slots are full. Level up the family or build Barracks.</p>}
       </Section>
     </div>
   )
@@ -306,12 +306,12 @@ function TurfWar({ s, d, run }) {
         ) : w?.result ? (
           <div className="flex flex-wrap items-center gap-3">
             <div className={`text-xl font-extrabold ${w.result.won ? 'text-gold' : 'text-red-400'}`}>{w.result.won ? 'VICTORY' : 'DEFEAT'}</div>
-            <div className="text-[13px] text-stone-300">{Math.round(w.us)} – {Math.round(w.them)} vs {RIVAL_CLANS.find((x) => x.id === w.rival).name}{w.result.won && ` · +${money(w.result.spoils)} treasury, +${WAR.winGold} Gold, +${WAR.winXp} clan XP`}</div>
+            <div className="text-[13px] text-stone-300">{Math.round(w.us)} – {Math.round(w.them)} vs {RIVAL_CLANS.find((x) => x.id === w.rival).name}{w.result.won && ` · +${money(w.result.spoils)} treasury, +${WAR.winGold} Gold, +${WAR.winXp} family XP`}</div>
             <button className="classic-btn-dark ml-auto" onClick={() => run(claimWar)}>Close</button>
           </div>
         ) : (
           <>
-            <p className="mb-2 text-[12px] text-stone-400">Declare a 24-hour war on a rival clan. It costs {money(warCost)} from the treasury. Win for spoils, Gold and clan XP.</p>
+            <p className="mb-2 text-[12px] text-stone-400">Declare a 24-hour war on a rival clan. It costs {money(warCost)} from the treasury. Win for spoils, Gold and family XP.</p>
             {RIVAL_CLANS.map((r) => {
               const truce = (c.truce[r.id] || 0) > now
               return (
@@ -357,7 +357,7 @@ function TurfWar({ s, d, run }) {
             )
           })}
         </div>
-        <p className="mt-2 text-[11px] text-stone-500">Rival clans claw back control every hour. Enforcers in your clan hold the line for you.</p>
+        <p className="mt-2 text-[11px] text-stone-500">Rival families claw back control every hour. Enforcers in your family hold the line for you.</p>
       </Section>
     </div>
   )
@@ -444,8 +444,8 @@ function Upgrades({ s, run }) {
   const c = s.clan
   const max = clanLevel(c).level
   return (
-    <Section flush title="Clan Upgrades" right={<span className="text-[12px] font-bold text-green-400">Treasury {money(c.treasury)}</span>}>
-      <p className="border-b border-[#24272D] px-3 py-2 text-[11px] text-stone-400">Paid from the treasury. Upgrades can't go above the clan level (now {max}).</p>
+    <Section flush title="Family Upgrades" right={<span className="text-[12px] font-bold text-green-400">Treasury {money(c.treasury)}</span>}>
+      <p className="border-b border-[#24272D] px-3 py-2 text-[11px] text-stone-400">Paid from the treasury. Upgrades can't go above the family level (now {max}).</p>
       {CLAN_UPGRADES.map((u) => {
         const lv = c.upgrades[u.id] || 0
         const cost = upgradeCost(lv + 1)
@@ -459,7 +459,7 @@ function Upgrades({ s, run }) {
             </div>
             <div className="flex w-full shrink-0 items-center justify-end gap-2 sm:w-48">
               {!capped && <span className="font-bold text-green-400">{money(cost)}</span>}
-              <button className="classic-btn" disabled={capped || c.treasury < cost} onClick={() => run(buyClanUpgrade, u.id)}>{capped ? (lv >= 10 ? 'Maxed' : `Clan Lv ${lv + 1}`) : 'Upgrade'}</button>
+              <button className="classic-btn" disabled={capped || c.treasury < cost} onClick={() => run(buyClanUpgrade, u.id)}>{capped ? (lv >= 10 ? 'Maxed' : `Family Lv ${lv + 1}`) : 'Upgrade'}</button>
             </div>
           </div>
         )

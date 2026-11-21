@@ -41,7 +41,7 @@ export default function FamilyTab({ s, d, run }) {
             <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
               <Stat label="Attack Power" value={fmt(d.pAtk)} color="#F87171" />
               <Stat label="Defense Power" value={fmt(d.pDef)} color="#60A5FA" />
-              <Stat label="Family Size" value={`${s.family}/${MAX_FAMILY}`} />
+              <Stat label="Crew Size" value={`${s.family}/${MAX_FAMILY}`} />
               <Stat label="Mentor" value={f.mentor} />
             </div>
           </div>
