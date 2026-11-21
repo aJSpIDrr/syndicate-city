@@ -2,7 +2,7 @@
 import { FACTIONS, getFaction, rankIndexForLevel, RIVAL_NAMES, weaponName } from '../data/factions.js'
 import {
   ITEMS, getItem, SIG_TIERS, JOBS, DISTRICTS, PROPERTIES, CONTRABAND, COLLECTIONS, MASTERY_REWARD, getContraband,
-  BOSSES, ACHIEVEMENTS, DAILY_GOLD,
+  BOSSES, ACHIEVEMENTS, DAILY_GOLD, PASSIVE_PERKS, ACTIVE_BOOSTS, perkCost,
 } from '../data/content.js'
 
 export const SAVE_KEY = 'syndicate-city-save-v1'
@@ -82,6 +82,8 @@ export function newGame(bossName, factionId) {
     daily: { last: null, streak: 0 },
     bosses: {},
     revenge: [],
+    perks: {},
+    boosts: {},
     promotion: null,
     toast: null,
   }
@@ -105,6 +107,8 @@ export function loadGame() {
     s.daily ??= { last: null, streak: 0 }
     s.bosses ??= {}
     s.revenge ??= []
+    s.perks ??= {}
+    s.boosts ??= {}
     return s
   } catch {
     return null
@@ -124,15 +128,27 @@ export function clearSave() {
 
 // ---------- derived stats ----------
 export function rankOf(s) { return rankIndexForLevel(s.level) }
-export function perksOf(s) { return getFaction(s.factionId).ranks[rankOf(s)].perks }
+export function rankPerksOf(s) { return getFaction(s.factionId).ranks[rankOf(s)].perks }
+
+// All perk bonuses combined: faction rank + purchased passive perks + active boosts.
+export function activeBoosts(s, now = Date.now()) {
+  return ACTIVE_BOOSTS.filter((b) => (s.boosts?.[b.id] || 0) > now)
+}
+export function perksOf(s) {
+  const out = { ...rankPerksOf(s) }
+  const add = (k, v) => { out[k] = (out[k] || 0) + v }
+  for (const p of PASSIVE_PERKS) { const lv = s.perks?.[p.id] || 0; if (lv) add(p.key, p.per * lv) }
+  for (const b of activeBoosts(s)) for (const [k, v] of Object.entries(b.effects)) add(k, v)
+  return out
+}
 
 export function derive(s) {
   const pk = perksOf(s)
   const g = (k) => pk[k] || 0
   const sig = SIG_TIERS[s.sigTier - 1]
-  const maxHealth = Math.floor((BASE.health + s.spent.maxHealth * 10 + s.bonus.maxHealth) * (1 + g('maxHealth')))
-  const maxEnergy = BASE.energy + s.spent.maxEnergy * 5 + s.bonus.maxEnergy
-  const maxStamina = BASE.stamina + s.spent.maxStamina + s.bonus.maxStamina
+  const maxHealth = Math.floor((BASE.health + s.spent.maxHealth * 10 + s.bonus.maxHealth + g('maxHealthFlat')) * (1 + g('maxHealth')))
+  const maxEnergy = BASE.energy + s.spent.maxEnergy * 5 + s.bonus.maxEnergy + g('maxEnergyFlat')
+  const maxStamina = BASE.stamina + s.spent.maxStamina + s.bonus.maxStamina + g('maxStaminaFlat')
   const attack = BASE.attack + s.spent.attack + s.bonus.attack
   const defense = BASE.defense + s.spent.defense + s.bonus.defense
   const intervals = {
@@ -140,7 +156,7 @@ export function derive(s) {
     stamina: REGEN.stamina.secs / (1 + g('staminaRegen')),
     health: REGEN.health.secs / (1 + g('healthRegen')),
   }
-  const bankFee = pk.bankFee ?? 0.10
+  const bankFee = Math.max(0.01, (pk.bankFee ?? 0.10) - g('bankFeeCut'))
   const crit = sig.crit + g('crit')
   const pen = sig.pen
   const grossIncome = PROPERTIES.reduce((t, p) => t + (s.properties[p.id] || 0) * p.income, 0) * (1 + g('propertyIncome'))
@@ -216,6 +232,10 @@ export function tick(state, now = Date.now()) {
 
 function incomingRaid(s, d) {
   if (s.health < HOSPITAL_THRESHOLD || s.level < 2) return
+  if (d.perks.raidShield) {
+    log(s, 'Your bodyguards turned away a rival crew looking for trouble.', 'win')
+    return
+  }
   const r = makeRival(s, BALANCE.rivalMult[0] - 0.1, BALANCE.rivalMult[1] - 0.1)
   const theirAtk = r.atk * rand(0.85, 1.15)
   const myDef = d.pDef * rand(0.85, 1.15)
@@ -794,7 +814,7 @@ export function importSave(code) {
     throw new Error('The backup code is damaged or incomplete.')
   }
   if (!s || s.version !== SAVE_VERSION || !getFaction(s.factionId) || typeof s.level !== 'number') throw new Error('The backup code is not a valid save.')
-  s.achievements ??= {}; s.daily ??= { last: null, streak: 0 }; s.bosses ??= {}; s.revenge ??= []
+  s.achievements ??= {}; s.daily ??= { last: null, streak: 0 }; s.bosses ??= {}; s.revenge ??= []; s.perks ??= {}; s.boosts ??= {}
   s.lastTick = Date.now()
   s.toast = { id: Date.now(), text: `Welcome back, ${s.bossName}. Save restored.`, kind: 'level' }
   return s
@@ -811,5 +831,34 @@ export function buyExclusive(state, id) {
   s.inventory[id] = (s.inventory[id] || 0) + 1
   toast(s, `Acquired ${item.name} for ${item.gold} Gold.`, 'level')
   log(s, `Bought the exclusive ${item.name} for ${item.gold} Gold Bars.`, 'win')
+  return s
+}
+
+// ---------- Perk Shop ----------
+export function buyPerk(state, id) {
+  const perk = PASSIVE_PERKS.find((p) => p.id === id)
+  if (!perk) return state
+  const lv = state.perks?.[id] || 0
+  if (lv >= perk.max) return state
+  const cost = perkCost(perk, lv + 1)
+  const s = clone(state)
+  if (s.gold < cost) { toast(s, `Needs ${cost} Gold Bars.`, 'error'); return s }
+  s.gold -= cost
+  s.perks = { ...s.perks, [id]: lv + 1 }
+  toast(s, `${perk.name} upgraded to level ${lv + 1}.`, 'level')
+  return s
+}
+
+export function activateBoost(state, id) {
+  const b = ACTIVE_BOOSTS.find((x) => x.id === id)
+  if (!b) return state
+  const s = clone(state)
+  if (s.gold < b.gold) { toast(s, `Needs ${b.gold} Gold Bars.`, 'error'); return s }
+  s.gold -= b.gold
+  const now = Date.now()
+  s.boosts = { ...s.boosts, [id]: Math.max(now, s.boosts?.[id] || 0) + b.minutes * 60000 }
+  if (b.heal) { s.health = derive(s).maxHealth; s.regen.health = 0 }
+  toast(s, `${b.name} active for ${b.minutes} more minutes.`, 'level')
+  log(s, `Activated ${b.name} (${b.gold} Gold).`, 'info')
   return s
 }

@@ -225,3 +225,36 @@ export const EXCLUSIVES = [
   excl('x_jet', 'vehicle', 'Private Smuggling Jet', 100, 90, 55, 32, 'helicopter'),
 ]
 ITEMS.push(...EXCLUSIVES)
+
+// ---- Perk Shop (bought with Gold) ----
+// Passive perks: permanent, 5 levels each. `per` is the bonus per level (same keys as faction perks,
+// plus flat keys maxEnergyFlat / maxStaminaFlat / maxHealthFlat and bankFeeCut).
+// Cost of level n = base * n (5 levels => base * 15 Gold total).
+const passive = (id, name, desc, key, per, base, unit) => ({ id, name, desc, key, per, base, unit, max: 5 })
+export const PASSIVE_PERKS = [
+  passive('p_lungs', 'Iron Lungs', 'More maximum Energy.', 'maxEnergyFlat', 5, 4, 'flat'),
+  passive('p_wind', 'Second Wind', 'Energy refills faster.', 'energyRegen', 0.04, 6, 'pct'),
+  passive('p_stamina', 'Brawler\'s Stamina', 'More maximum Stamina.', 'maxStaminaFlat', 1, 6, 'flat'),
+  passive('p_skin', 'Thick Skin', 'More maximum Health.', 'maxHealthFlat', 15, 4, 'flat'),
+  passive('p_racket', 'Racketeer', 'Jobs pay more cash.', 'jobCash', 0.04, 5, 'pct'),
+  passive('p_smarts', 'Street Smarts', 'Jobs give more XP.', 'jobXp', 0.03, 7, 'pct'),
+  passive('p_ledger', 'Landlord\'s Ledger', 'Properties earn more per hour.', 'propertyIncome', 0.05, 5, 'pct'),
+  passive('p_fence', 'Fence Network', 'Better odds of loot and contraband drops.', 'loot', 0.05, 4, 'pct'),
+  passive('p_killer', 'Killer Instinct', 'Higher critical strike chance in fights.', 'crit', 0.02, 6, 'pct'),
+  passive('p_partner', 'Silent Partner', 'Lower bank laundering fee (never below 1%).', 'bankFeeCut', 0.01, 5, 'pctFee'),
+  passive('p_recruit', 'Recruiter', 'Hiring crew costs less.', 'crewCost', 0.04, 5, 'pctCut'),
+  passive('p_fingers', 'Sticky Fingers', 'Steal more cash when you win a fight.', 'pvpCash', 0.04, 5, 'pct'),
+]
+export const perkCost = (perk, nextLevel) => perk.base * nextLevel
+
+// Active boosts: timed, bought and switched on instantly. Buying again extends the timer.
+const boost = (id, name, desc, effects, minutes, gold, extra = {}) => ({ id, name, desc, effects, minutes, gold, ...extra })
+export const ACTIVE_BOOSTS = [
+  boost('b_double', 'Double Down', 'Double cash from jobs.', { jobCash: 1 }, 30, 15),
+  boost('b_adrenaline', 'Adrenaline', 'Double XP from jobs.', { jobXp: 1 }, 30, 18),
+  boost('b_warpaint', 'War Paint', '+25% Attack in fights and boss battles.', { attack: 0.25 }, 30, 12),
+  boost('b_bodyguards', 'Bodyguards', '+25% Defense and rivals can\'t raid you.', { defense: 0.25, raidShield: 1 }, 120, 10),
+  boost('b_lucky', 'Lucky Charm', 'Double loot and contraband drop chance.', { loot: 1 }, 60, 10),
+  boost('b_rush', 'Rush Hour', 'Energy refills twice as fast.', { energyRegen: 1 }, 60, 15),
+  boost('b_medic', 'Medic on Call', 'Instant full heal, then Health refills 3x faster.', { healthRegen: 2 }, 60, 8, { heal: true }),
+]

@@ -17,8 +17,9 @@ import ArsenalTab from './components/tabs/ArsenalTab'
 import FightClubTab from './components/tabs/FightClubTab'
 import VaultTab from './components/tabs/VaultTab'
 import MissionsTab from './components/tabs/MissionsTab'
+import PerksTab from './components/tabs/PerksTab'
 
-const TAB_VIEWS = { family: FamilyTab, jobs: JobsTab, realestate: RealEstateTab, arsenal: ArsenalTab, fight: FightClubTab, vault: VaultTab, missions: MissionsTab }
+const TAB_VIEWS = { family: FamilyTab, jobs: JobsTab, realestate: RealEstateTab, arsenal: ArsenalTab, fight: FightClubTab, vault: VaultTab, missions: MissionsTab, perks: PerksTab }
 
 export default function App() {
   const { state: s, derived: d, run, start, reset, restore } = useGame()

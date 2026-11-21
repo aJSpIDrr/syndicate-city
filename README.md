@@ -37,6 +37,7 @@ The game will then be live at `https://ajspidrr.github.io/syndicate-city/`.
 - **Fight Club**: an AI rival generator covering all 6 factions, crits, armor pen, a hospital rule (<20 HP), a Street Doctor, a leaderboard, and asynchronous rival raids on your unbanked cash.
 - **Contraband Vault**: 3 collection sets with permanent bonuses, plus Gold crates.
 - **District bosses**: Bronze every job in a district to unlock its boss; wear them down over several hits for Gold, cash and a unique trophy item.
+- **Perks & Boosts** (Gold): 12 passive perks with 5 levels each that stack on faction rank perks, and 7 timed active boosts (double cash/XP, +25% attack/defense, raid shield, loot, fast energy, medic).
 - **Missions & Rewards**: a 7-day daily tribute streak, mentor orders for new players, and 25 achievements paying Gold and cash.
 - **Repeat jobs**: x5 button on every unlocked job.
 - **Revenge list**: rivals who raid you appear in the Fight Club for 24h; beating them pays +50% cash and XP.

@@ -1,6 +1,7 @@
 import { Banknote, Coins, Zap, Grab, Cross, Star, Landmark, Mail, Settings, Plus } from 'lucide-react'
 import { getFaction } from '../data/factions'
-import { xpForNext, fmt, money, cityRank, HOSPITAL_THRESHOLD } from '../game/engine'
+import { xpForNext, fmt, money, cityRank, HOSPITAL_THRESHOLD, activeBoosts } from '../game/engine'
+import { fmtLeft } from './tabs/PerksTab'
 import FactionBanner from './FactionBanner'
 import Avatar from './Avatar'
 import { TABS } from './tabs.js'
@@ -88,6 +89,20 @@ export default function Header({ s, d, tab, setTab, onOpen, badges }) {
           </div>
         </div>
       </div>
+
+      {/* Active boosts */}
+      {activeBoosts(s).length > 0 && (
+        <div className="border-b border-black bg-[#1A160B]">
+          <div className="mx-auto flex max-w-[1000px] flex-wrap items-center gap-1.5 px-2 py-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gold">Boosts</span>
+            {activeBoosts(s).map((b) => (
+              <button key={b.id} onClick={() => setTab('perks')} className="rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[11px] font-semibold text-gold">
+                {b.name} · {fmtLeft(s.boosts[b.id] - Date.now())}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Tab bar */}
       <nav className="bg-[#0E0F12]">
