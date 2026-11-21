@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   X, Sword, Shield, Car, Package, Cigarette, Wine, Gem, FileText, Briefcase, Bomb, Banknote, Crosshair, Coins,
 } from 'lucide-react'
-import { RARITY } from '../data/content'
+import { RARITY, getItem } from '../data/content'
 import { ASSET_MAP } from '../assetMap'
 import ItemSprite from '../art/ItemSprites'
 import ContrabandSprite from '../art/ContrabandSprites'
@@ -73,7 +73,7 @@ export function ItemArt({ kind, id, category, rarity, size = 56 }) {
   const color = RARITY[rarity]?.color || '#9CA3AF'
   if (url) return <img src={url} alt="" className="h-full w-full object-contain" />
   if (kind === 'contraband') return <div className="flex h-full w-full items-center justify-center"><ContrabandSprite id={id} size={size} glow={color} /></div>
-  if (kind === 'item' && id) return <div className="flex h-full w-full items-center justify-center"><ItemSprite id={id} size={size} glow={color} /></div>
+  if (kind === 'item' && id) return <div className="flex h-full w-full items-center justify-center"><ItemSprite id={getItem(id)?.sprite || id} size={size} glow={color} /></div>
   const Icon = kind === 'contraband' ? CONTRABAND_ICONS[id] || Package : CATEGORY_ICONS[category] || Crosshair
   return (
     <div className="flex h-full w-full items-center justify-center rounded-lg" style={{ background: `radial-gradient(circle at 50% 40%, ${color}33, transparent 70%)` }}>

@@ -36,6 +36,9 @@ The game will then be live at `https://ajspidrr.github.io/syndicate-city/`.
 - **Bank**: 10% laundering fee (The Firm lowers it to 2%). Banked cash is safe.
 - **Fight Club**: an AI rival generator covering all 6 factions, crits, armor pen, a hospital rule (<20 HP), a Street Doctor, a leaderboard, and asynchronous rival raids on your unbanked cash.
 - **Contraband Vault**: 3 collection sets with permanent bonuses, plus Gold crates.
+- **District bosses**: Bronze every job in a district to unlock its boss; wear them down over several hits for Gold, cash and a unique trophy item.
+- **Missions & Rewards**: a 7-day daily tribute streak, mentor orders for new players, and 25 achievements paying Gold and cash.
+- **Repeat jobs**: x5 button on every unlocked job.
 - **Gold Store** with dev test tools (+5 Levels, +50 Gold, +$100k).
 - Saves to `localStorage`. Reset is under Settings.
 

@@ -141,3 +141,67 @@ export const MASTERY_REWARD = {
   energy: { maxEnergy: 5, text: '+5 Max Energy' },
 }
 export const STARS = ['None', 'Bronze', 'Silver', 'Gold']
+
+// ---- Boss trophies (unique, not sold in the Black Market) ----
+// `sprite` reuses a built-in item drawing; `unique` keeps them out of the shop.
+const trophy = (id, category, name, atk, def, sprite) => ({ id, category, name, rarity: 'legendary', atk, def, price: 0, upkeep: 0, unique: true, sprite })
+ITEMS.push(
+  trophy('t_hook', 'weapon', "Dockmaster's Cargo Hook", 30, 14, 'switchblade'),
+  trophy('t_cane', 'weapon', "Boss Tweed's Sword Cane", 42, 20, 'bat'),
+  trophy('t_bowler', 'armor', 'Steel-Lined Bowler Coat', 16, 48, 'trench'),
+  trophy('t_bentley', 'vehicle', 'Armoured Bentley', 40, 46, 'armoredsedan'),
+  trophy('t_tanto', 'weapon', 'Oyabun\'s Tantō', 62, 26, 'switchblade'),
+  trophy('t_junk', 'vehicle', 'Smuggler\'s Junk Boat', 58, 52, 'speedboat'),
+  trophy('t_vest', 'armor', 'Gold-Plated Plate Carrier', 34, 78, 'tacsuit'),
+  trophy('t_gunship', 'vehicle', 'Cartel Gunship', 90, 70, 'helicopter'),
+)
+
+// ---- District bosses: unlock once every job in the district has Bronze mastery ----
+export const BOSSES = {
+  docks: { name: 'Big Sal, the Dockmaster', level: 6, energy: 5, reward: { gold: 10, cash: 3000, item: 't_hook' } },
+  midtown: { name: 'Alderman "Boss" Tweedy', level: 9, energy: 8, reward: { gold: 12, cash: 8000, item: 't_cane' } },
+  eastend: { name: 'Reggie "The Razor" Crane', level: 13, energy: 12, reward: { gold: 14, cash: 20000, item: 't_bowler' } },
+  downtown: { name: 'Lord Hollis of the City', level: 17, energy: 16, reward: { gold: 16, cash: 45000, item: 't_bentley' } },
+  shinjuku: { name: 'Oyabun Kuroda', level: 21, energy: 22, reward: { gold: 18, cash: 90000, item: 't_tanto' } },
+  kowloon: { name: 'Dragon Head Wong', level: 26, energy: 27, reward: { gold: 20, cash: 160000, item: 't_junk' } },
+  jozi: { name: 'Grootbaas Venter', level: 32, energy: 38, reward: { gold: 25, cash: 300000, item: 't_vest' } },
+  border: { name: 'El Escorpión', level: 40, energy: 52, reward: { gold: 30, cash: 600000, item: 't_gunship' } },
+}
+
+// ---- Daily login reward (7-day streak, then repeats) ----
+export const DAILY_GOLD = [2, 2, 3, 3, 4, 5, 10]
+
+// ---- Missions & achievements ----
+// value(s) returns current progress; claimed once progress >= target.
+const ach = (id, title, desc, target, value, reward, mentor = false) => ({ id, title, desc, target, value, reward, mentor })
+const stars = (s) => Object.values(s.mastery).reduce((t, m) => t + m.star, 0)
+const propCount = (s) => Object.values(s.properties).reduce((t, n) => t + n, 0)
+const bossCount = (s) => Object.values(s.bosses || {}).filter((b) => b.defeated).length
+const vaulted = (s) => Object.values(s.collections).reduce((t, n) => t + n, 0)
+export const ACHIEVEMENTS = [
+  ach('m_job', 'First Score', 'Complete any job.', 1, (s) => s.stats.jobs, { gold: 2, cash: 200 }, true),
+  ach('m_buy', 'Tooled Up', 'Own a weapon, armor or vehicle (buy one in the Black Market).', 1, (s) => Object.entries(s.inventory).some(([id, n]) => n > 0 && !id.startsWith('t_')) ? 1 : 0, { gold: 2, cash: 300 }, true),
+  ach('m_prop', 'Property Owner', 'Buy your first property.', 1, propCount, { gold: 3, cash: 500 }, true),
+  ach('m_bank', 'Clean Money', 'Launder cash into the Bank.', 1, (s) => (s.bank > 0 ? 1 : 0), { gold: 2, cash: 300 }, true),
+  ach('m_crew', 'Made a Family', 'Grow your Family to 5.', 5, (s) => s.family, { gold: 3, cash: 1000 }, true),
+  ach('m_fight', 'Bloodied Knuckles', 'Win a fight in the Fight Club.', 1, (s) => s.stats.fightsWon, { gold: 3, cash: 500 }, true),
+  ach('m_star', 'Know the Streets', 'Earn a Bronze mastery star.', 1, stars, { gold: 3, cash: 800 }, true),
+  ach('m_forge', 'Forged in Fire', 'Upgrade your signature weapon.', 2, (s) => s.sigTier, { gold: 5 }, true),
+  ach('m_boss', 'Bring Me His Head', 'Defeat a district boss.', 1, bossCount, { gold: 10, cash: 5000 }, true),
+  ach('jobs100', 'Workhorse', 'Complete 100 jobs.', 100, (s) => s.stats.jobs, { gold: 10 }),
+  ach('jobs1000', 'Career Criminal', 'Complete 1,000 jobs.', 1000, (s) => s.stats.jobs, { gold: 30 }),
+  ach('lvl10', 'Rising Name', 'Reach Level 10.', 10, (s) => s.level, { gold: 10 }),
+  ach('lvl25', 'Feared', 'Reach Level 25.', 25, (s) => s.level, { gold: 20 }),
+  ach('lvl50', 'Legend of the Underworld', 'Reach Level 50.', 50, (s) => s.level, { gold: 40 }),
+  ach('fights100', 'Brawler', 'Win 100 fights.', 100, (s) => s.stats.fightsWon, { gold: 15 }),
+  ach('fights1000', 'Untouchable', 'Win 1,000 fights.', 1000, (s) => s.stats.fightsWon, { gold: 40 }),
+  ach('fam50', 'Small Army', 'Grow your Family to 50.', 50, (s) => s.family, { gold: 20 }),
+  ach('fam200', 'Empire of Men', 'Grow your Family to 200.', 200, (s) => s.family, { gold: 40 }),
+  ach('props25', 'Landlord', 'Own 25 properties.', 25, propCount, { gold: 15 }),
+  ach('props100', 'Real Estate Mogul', 'Own 100 properties.', 100, propCount, { gold: 35 }),
+  ach('bank1m', 'Offshore Account', 'Have $1,000,000 in the Bank.', 1000000, (s) => s.bank, { gold: 25 }),
+  ach('stars24', 'Master of the City', 'Earn 24 mastery stars.', 24, stars, { gold: 25 }),
+  ach('bosses8', 'King of Every District', 'Defeat all 8 district bosses.', 8, bossCount, { gold: 50 }),
+  ach('sets3', 'Collector', 'Vault 3 collection sets.', 3, vaulted, { gold: 15 }),
+  ach('mk10', 'Mythic Arsenal', 'Forge your signature weapon to Mk. X.', 10, (s) => s.sigTier, { gold: 50 }),
+]

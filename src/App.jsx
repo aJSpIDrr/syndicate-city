@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useGame } from './game/useGame'
 import { getFaction } from './data/factions'
-import { markRead, collectionReady } from './game/engine'
+import { markRead, collectionReady, claimableCount } from './game/engine'
 import { COLLECTIONS } from './data/content'
 import FactionSelect from './components/FactionSelect'
 import Header from './components/Header'
@@ -14,8 +14,9 @@ import RealEstateTab from './components/tabs/RealEstateTab'
 import ArsenalTab from './components/tabs/ArsenalTab'
 import FightClubTab from './components/tabs/FightClubTab'
 import VaultTab from './components/tabs/VaultTab'
+import MissionsTab from './components/tabs/MissionsTab'
 
-const TAB_VIEWS = { family: FamilyTab, jobs: JobsTab, realestate: RealEstateTab, arsenal: ArsenalTab, fight: FightClubTab, vault: VaultTab }
+const TAB_VIEWS = { family: FamilyTab, jobs: JobsTab, realestate: RealEstateTab, arsenal: ArsenalTab, fight: FightClubTab, vault: VaultTab, missions: MissionsTab }
 
 export default function App() {
   const { state: s, derived: d, run, start, reset } = useGame()
@@ -36,6 +37,7 @@ export default function App() {
     family: s.skillPoints,
     realestate: s.pendingIncome >= 1 && d.grossIncome > 0 && s.pendingIncome >= d.grossIncome * 0.5 ? 1 : 0,
     vault: COLLECTIONS.filter((c) => collectionReady(s, c)).length,
+    missions: claimableCount(s),
   }
 
   return (

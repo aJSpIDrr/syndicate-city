@@ -2,7 +2,7 @@
 // Usage: node tools/sim.mjs [factionId] [hours] [checkInMinutes]
 //   checkInMinutes = how often the bot "opens the game" (default 10). Time passes between check-ins.
 import * as E from '../src/game/engine.js'
-import { JOBS, ITEMS, PROPERTIES, getItem } from '../src/data/content.js'
+import { JOBS, ITEMS, PROPERTIES, BOSSES, ACHIEVEMENTS, getItem } from '../src/data/content.js'
 import { getFaction } from '../src/data/factions.js'
 
 const factionId = process.argv[2] || 'families'
@@ -19,13 +19,15 @@ const fights = { won: 0, lost: 0 }
 const bands = {}
 const band = (l) => `${Math.floor((l - 1) / 10) * 10 + 1}-${Math.floor((l - 1) / 10) * 10 + 10}`
 let raidsLost = 0
+const bossAt = {}
 
 function bestJob() {
   const ok = JOBS.filter((j) => E.jobBlockers(s, j).length === 0)
   // Prefer unmastered jobs a bit (mastery pays gold), otherwise best XP/energy.
   return ok.sort((a, b) => score(b) - score(a))[0]
 }
-const score = (j) => (j.xp / j.energy) * ((s.mastery[j.id]?.star ?? 0) < 3 ? 1.15 : 1)
+// Strongly prefer jobs without Bronze yet (unlocks the district boss), then unmastered ones.
+const score = (j) => { const st = s.mastery[j.id]?.star ?? 0; return (j.xp / j.energy) * (st === 0 ? 3 : st < 3 ? 1.15 : 1) }
 
 function buyForNextJob() {
   // Next locked job in an unlocked district: buy its missing items if affordable.
@@ -54,7 +56,7 @@ function gearUp() {
   const slots = { weapon: s.family - 1 - d.equipped.weapons, armor: s.family - d.equipped.armor, vehicle: s.family - d.equipped.vehicles }
   for (const cat of ['weapon', 'armor', 'vehicle']) {
     if (slots[cat] <= 0) continue
-    const opts = ITEMS.filter((i) => i.category === cat && i.price * 4 < s.cash).sort((a, b) => (b.atk + b.def) - (a.atk + a.def))
+    const opts = ITEMS.filter((i) => i.category === cat && !i.unique && i.price * 4 < s.cash).sort((a, b) => (b.atk + b.def) - (a.atk + a.def))
     if (opts[0]) s = E.buyItem(s, opts[0].id, Math.min(slots[cat], Math.floor(s.cash / 4 / opts[0].price)) || 1)
   }
 }
@@ -90,6 +92,24 @@ for (let step = 0; step < steps; step++) {
     const lvl = s.level
     s = E.doJob(s, j.id)
     if (s.level > lvl) for (let L = lvl + 1; L <= s.level; L++) levelAt[L] ??= (clock - s.createdAt) / 3600000
+  }
+
+  // Daily reward + achievements
+  s = E.claimDaily(s)
+  for (const a of ACHIEVEMENTS) s = E.claimAchievement(s, a.id)
+
+  // District bosses (only when the odds are reasonable)
+  for (const id of Object.keys(BOSSES)) {
+    for (let guard = 0; guard < 30; guard++) {
+      if (!E.bossUnlocked(s, id) || E.bossState(s, id).defeated) break
+      if (s.health < E.HOSPITAL_THRESHOLD) { s = E.healAtDoctor(s); if (s.health < E.HOSPITAL_THRESHOLD) break }
+      const st = E.bossStats(id), d0 = E.derive(s)
+      if (d0.pAtk / st.def < 0.7 || s.energy < BOSSES[id].energy) break
+      const lvl = s.level
+      s = E.attackBoss(s, id)
+      if (E.bossState(s, id).defeated) bossAt[id] = { h: (clock - s.createdAt) / 3600000, lvl: s.level }
+      if (s.level > lvl) for (let L = lvl + 1; L <= s.level; L++) levelAt[L] ??= (clock - s.createdAt) / 3600000
+    }
   }
 
   // Fights
@@ -132,3 +152,8 @@ console.log('PvP by level band:', Object.entries(bands).map(([k, v]) => {
   const avg = v.ratio.reduce((a, b) => a + b, 0) / v.ratio.length
   return `${k}: ${Math.round((v.won / (v.won + v.lost)) * 100)}% win (atk/def ${avg.toFixed(2)})`
 }).join('  |  '))
+console.log('Bosses:', Object.entries(bossAt).map(([k, v]) => `${k}@${v.h.toFixed(1)}h/L${v.lvl}`).join('  ') || 'none')
+if (process.env.DEBUG_BOSS) for (const id of Object.keys(BOSSES)) {
+  const st = E.bossStats(id)
+  console.log(id, 'unlocked', E.bossUnlocked(s, id), 'state', JSON.stringify(E.bossState(s, id)), 'bossDef', st.def, 'stars', JOBS.filter((j) => j.district === id).map((j) => s.mastery[j.id]?.star || 0).join(','))
+}

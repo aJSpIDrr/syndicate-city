@@ -2,6 +2,7 @@
 import { FACTIONS, getFaction, rankIndexForLevel, RIVAL_NAMES, weaponName } from '../data/factions.js'
 import {
   ITEMS, getItem, SIG_TIERS, JOBS, DISTRICTS, PROPERTIES, CONTRABAND, COLLECTIONS, MASTERY_REWARD, getContraband,
+  BOSSES, ACHIEVEMENTS, DAILY_GOLD,
 } from '../data/content.js'
 
 export const SAVE_KEY = 'syndicate-city-save-v1'
@@ -77,6 +78,9 @@ export function newGame(bossName, factionId) {
     stats: { jobs: 0, fightsWon: 0, fightsLost: 0, defendedWon: 0, defendedLost: 0, cashEarned: 0 },
     log: [],
     unread: 0,
+    achievements: {},
+    daily: { last: null, streak: 0 },
+    bosses: {},
     promotion: null,
     toast: null,
   }
@@ -95,6 +99,10 @@ export function loadGame() {
     const s = JSON.parse(raw)
     if (!s || s.version !== SAVE_VERSION || !s.factionId) return null
     s.toast = null
+    // Fields added after the first release
+    s.achievements ??= {}
+    s.daily ??= { last: null, streak: 0 }
+    s.bosses ??= {}
     return s
   } catch {
     return null
@@ -412,6 +420,7 @@ export function collectIncome(state) {
 
 export function buyItem(state, id, qty = 1) {
   const item = getItem(id)
+  if (!item || item.unique) return state
   const s = clone(state)
   const total = item.price * qty
   if (s.cash < total) { toast(s, 'Not enough cash on hand.', 'error'); return s }
@@ -424,7 +433,7 @@ export function buyItem(state, id, qty = 1) {
 export function sellItem(state, id, qty = 1) {
   const item = getItem(id)
   const have = state.inventory[id] || 0
-  if (have < qty) return state
+  if (have < qty || item.unique) return state
   const s = clone(state)
   const total = Math.floor(item.price * 0.5) * qty
   s.inventory[id] = have - qty
@@ -642,3 +651,117 @@ export function devCash(state, n = 100000) {
 
 export function dismissPromotion(state) { return { ...state, promotion: null } }
 export function markRead(state) { return { ...state, unread: 0 } }
+
+// ---------- jobs: repeat ----------
+export function doJobRepeat(state, jobId, times = 5) {
+  const job = JOBS.find((j) => j.id === jobId)
+  let s = state, done = 0, cash = 0, xp = 0
+  for (let i = 0; i < times; i++) {
+    if (!job || s.energy < job.energy || jobBlockers(s, job).length) break
+    const before = { cash: s.cash, xp: s.xp, level: s.level, stats: s.stats.cashEarned }
+    s = doJob(s, jobId)
+    done++
+    cash += s.stats.cashEarned - before.stats
+    xp += Math.round(job.xp * (1 + (perksOf(s).jobXp || 0)))
+  }
+  if (done > 1) { s = clone(s); toast(s, `${job.name} x${done}: +${money(cash)} · +${xp} XP`, 'win') }
+  return s
+}
+
+// ---------- daily reward ----------
+const dayKey = (t = Date.now()) => new Date(t).toLocaleDateString('en-CA')
+export function dailyStatus(s) {
+  const today = dayKey()
+  const yesterday = dayKey(Date.now() - 86400000)
+  const ready = s.daily.last !== today
+  const streak = !ready ? s.daily.streak : s.daily.last === yesterday ? s.daily.streak + 1 : 1
+  const day = (streak - 1) % 7
+  return { ready, streak, day, gold: DAILY_GOLD[day], cash: s.level * 150 * (day + 1) }
+}
+export function claimDaily(state) {
+  const st = dailyStatus(state)
+  if (!st.ready) return state
+  const s = clone(state)
+  s.daily = { last: dayKey(), streak: st.streak }
+  s.gold += st.gold
+  s.cash += st.cash
+  toast(s, `Daily tribute, day ${st.streak}: +${st.gold} Gold, +${money(st.cash)}`, 'level')
+  log(s, `Collected daily tribute (day ${st.streak}): +${st.gold} Gold Bars, +${money(st.cash)}.`, 'win')
+  return s
+}
+
+// ---------- achievements ----------
+export function achievementProgress(s, a) {
+  const v = a.value(s)
+  return { value: Math.min(v, a.target), done: v >= a.target, claimed: !!s.achievements[a.id] }
+}
+export function claimableCount(s) {
+  return ACHIEVEMENTS.filter((a) => !s.achievements[a.id] && a.value(s) >= a.target).length + (dailyStatus(s).ready ? 1 : 0)
+}
+export function claimAchievement(state, id) {
+  const a = ACHIEVEMENTS.find((x) => x.id === id)
+  if (!a || state.achievements[id] || a.value(state) < a.target) return state
+  const s = clone(state)
+  s.achievements[id] = Date.now()
+  s.gold += a.reward.gold || 0
+  s.cash += a.reward.cash || 0
+  const parts = [a.reward.gold && `+${a.reward.gold} Gold`, a.reward.cash && `+${money(a.reward.cash)}`].filter(Boolean).join(', ')
+  toast(s, `Achievement: ${a.title}! ${parts}`, 'level')
+  log(s, `Achievement unlocked: ${a.title} (${parts}).`, 'win')
+  return s
+}
+
+// ---------- district bosses ----------
+export function bossUnlocked(s, districtId) {
+  return districtUnlocked(s, districtId) && JOBS.filter((j) => j.district === districtId).every((j) => (s.mastery[j.id]?.star || 0) >= 1)
+}
+export function bossState(s, districtId) {
+  return s.bosses[districtId] || { hp: 100, defeated: false }
+}
+export function bossStats(districtId) {
+  const b = BOSSES[districtId]
+  const fam = Math.round(3 + b.level * 0.9)
+  const sig = sigAtkForLevel(b.level + 3)
+  const gear = ([a, c, e]) => a + c * Math.pow(b.level, e)
+  const base = (5 + b.level * 2) * 1.5
+  return {
+    atk: Math.round((base + sig.atk + (fam - 1) * gear(BALANCE.rivalGearAtk)) * 1.15),
+    def: Math.round((base + sig.def + (fam - 1) * gear(BALANCE.rivalGearDef)) * 1.15),
+    family: fam,
+  }
+}
+export function attackBoss(state, districtId) {
+  const b = BOSSES[districtId]
+  if (!b || !bossUnlocked(state, districtId)) return state
+  const s = clone(state)
+  const bs = { ...bossState(s, districtId) }
+  if (bs.defeated) return state
+  if (s.energy < b.energy) { toast(s, `Need ${b.energy} Energy to hit ${b.name}.`, 'error'); return s }
+  if (s.health < HOSPITAL_THRESHOLD) { toast(s, 'You are too injured. Visit the Street Doctor.', 'error'); return s }
+  const d = derive(s)
+  const st = bossStats(districtId)
+  s.energy -= b.energy
+  const crit = Math.random() < d.crit
+  const ratio = (d.pAtk * (crit ? 1.5 : 1)) / Math.max(1, st.def * (1 - d.pen))
+  const dmg = Math.max(1, Math.round(rand(8, 14) * clamp(ratio, 0.3, 1.7)))
+  const taken = Math.round(rand(4, 9) * clamp(st.atk / Math.max(1, d.pDef), 0.5, 2.2))
+  bs.hp = Math.max(0, bs.hp - dmg)
+  s.health = Math.max(0, s.health - taken)
+  const xp = Math.round(b.energy * 2.2)
+  let msg = `${crit ? 'CRITICAL! ' : ''}You hit ${b.name} for ${dmg}% (${bs.hp}% left) and took ${taken} damage. +${xp} XP.`
+  if (bs.hp <= 0) {
+    bs.defeated = true
+    s.gold += b.reward.gold
+    s.cash += b.reward.cash
+    s.stats.cashEarned += b.reward.cash
+    s.inventory[b.reward.item] = (s.inventory[b.reward.item] || 0) + 1
+    msg = `${b.name} is finished! +${b.reward.gold} Gold, +${money(b.reward.cash)} and trophy: ${getItem(b.reward.item).name}.`
+    log(s, msg, 'level')
+    toast(s, msg, 'level')
+  } else {
+    toast(s, msg, ratio >= 0.8 ? 'win' : 'error')
+  }
+  s.bosses[districtId] = bs
+  gainXp(s, xp)
+  return s
+}

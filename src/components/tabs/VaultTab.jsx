@@ -1,5 +1,5 @@
 import { Check, Coins, Package } from 'lucide-react'
-import { CONTRABAND, COLLECTIONS, RARITY, getContraband, getItem } from '../../data/content'
+import { CONTRABAND, COLLECTIONS, RARITY, ITEMS, BOSSES, DISTRICTS, getContraband, getItem } from '../../data/content'
 import { vaultCollection, collectionReady, openCrate, GOLD_PRICES } from '../../game/engine'
 import { Section, ItemArt } from '../ui'
 
@@ -24,6 +24,25 @@ export default function VaultTab({ s, run }) {
           })}
         </div>
         <p className="mt-3 text-xs text-stone-500">Contraband drops from Jobs (and Fight Club wins). Crates give 2 random pieces.</p>
+      </Section>
+
+      <Section title="Boss Trophies">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {ITEMS.filter((i) => i.unique).map((t) => {
+            const owned = (s.inventory[t.id] || 0) > 0
+            const district = DISTRICTS.find((x) => BOSSES[x.id].reward.item === t.id)
+            return (
+              <div key={t.id} className={`rounded border-2 bg-black/30 p-2 text-center ${owned ? 'border-gold/70' : 'border-[#2A2E35] opacity-50'}`}>
+                <div className="mx-auto h-16 w-16" style={owned ? undefined : { filter: 'grayscale(1) brightness(.5)' }}>
+                  <ItemArt kind="item" id={t.id} category={t.category} rarity={t.rarity} size={64} />
+                </div>
+                <div className="text-[12px] font-bold leading-tight text-stone-100">{t.name}</div>
+                <div className="text-[11px] text-stone-400">{t.atk} Atk / {t.def} Def · {t.category}</div>
+                <div className="text-[10px] text-stone-500">{owned ? 'Equipped automatically' : `Beat ${BOSSES[district.id].name.split(',')[0]} (${district.name})`}</div>
+              </div>
+            )
+          })}
+        </div>
       </Section>
 
       <Section title="Collections">
