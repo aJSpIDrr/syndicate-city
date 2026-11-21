@@ -20,8 +20,10 @@ import FightClubTab from './components/tabs/FightClubTab'
 import VaultTab from './components/tabs/VaultTab'
 import MissionsTab from './components/tabs/MissionsTab'
 import PerksTab from './components/tabs/PerksTab'
+import ClanTab from './components/tabs/ClanTab'
+import { clanBadge } from './game/clan'
 
-const TAB_VIEWS = { family: FamilyTab, jobs: JobsTab, realestate: RealEstateTab, arsenal: ArsenalTab, fight: FightClubTab, vault: VaultTab, missions: MissionsTab, perks: PerksTab }
+const TAB_VIEWS = { family: FamilyTab, jobs: JobsTab, realestate: RealEstateTab, arsenal: ArsenalTab, fight: FightClubTab, vault: VaultTab, missions: MissionsTab, perks: PerksTab, clan: ClanTab }
 
 export default function App() {
   const { state: s, derived: d, run, start, reset, restore } = useGame()
@@ -52,6 +54,7 @@ export default function App() {
     realestate: s.pendingIncome >= 1 && d.grossIncome > 0 && s.pendingIncome >= d.grossIncome * 0.5 ? 1 : 0,
     vault: COLLECTIONS.filter((c) => collectionReady(s, c)).length,
     missions: claimableCount(s),
+    clan: clanBadge(s),
     fight: s.world && !s.world.defeated && !s.world.escaped ? 1 : 0,
   }
 

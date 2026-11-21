@@ -2,6 +2,20 @@
 // players see a "What's New" popup once when the top entry's id changes.
 export const CHANGELOG = [
   {
+    id: '1.12',
+    date: '2026-11-21',
+    title: 'Clans',
+    items: [
+      'New Clan tab: found your own crime family from Level 5 with a name, a tag and a crest you design.',
+      'Recruit AI mobsters: Earners, Enforcers, Smugglers and Strategists, each with skill, loyalty and a daily wage. They talk in the clan feed and walk out if you stop paying them.',
+      'Appoint an Underboss, Consigliere, two Capos and a Treasurer for personal bonuses.',
+      'Turf map: take all 8 districts from rival clans for treasury income and +10% job cash there.',
+      '24-hour clan wars against five rival clans. Fights, turf pushes and World Enemy hits all score.',
+      'Timed heists: pick a crew of specialists, pay the prep and come back for the haul.',
+      'Treasury, clan levels, six upgrades and three daily contracts.',
+    ],
+  },
+  {
     id: '1.11',
     date: '2026-11-21',
     title: 'Update History & Easier Updates',

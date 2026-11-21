@@ -98,7 +98,7 @@ export default function Header({ s, d, tab, setTab, onOpen, badges, newUpdate })
         <button onClick={() => setTab('fight')} className="block w-full border-b border-black bg-gradient-to-r from-[#5A0F0F] via-[#3A0A0A] to-[#5A0F0F] text-left">
           <div className="mx-auto flex max-w-[1000px] items-center gap-2 px-2 py-1 text-[12px]">
             <Skull size={14} className="shrink-0 animate-pulse text-red-400" />
-            <span className="font-bold uppercase tracking-wider text-red-300">World Enemy</span>
+            <span className="hidden font-bold uppercase tracking-wider text-red-300 sm:inline">World Enemy</span>
             <span className="truncate text-stone-200">{worldTemplate(s.world).name} spotted in {DISTRICTS.find((x) => x.id === s.world.location).name}</span>
             <span className="ml-auto shrink-0 rounded bg-red-600 px-2 py-0.5 text-[11px] font-bold uppercase text-white">Attack ›</span>
           </div>

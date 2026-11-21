@@ -4,6 +4,8 @@ import {
   ITEMS, getItem, SIG_TIERS, JOBS, DISTRICTS, PROPERTIES, CONTRABAND, COLLECTIONS, MASTERY_REWARD, getContraband,
   BOSSES, ACHIEVEMENTS, DAILY_GOLD, PASSIVE_PERKS, ACTIVE_BOOSTS, perkCost, WORLD, WORLD_ENEMIES,
 } from '../data/content.js'
+import { clanPerks, clanTick, clanEvent, heldDistricts } from './clan.js'
+import { TURF } from '../data/clan.js'
 
 export const SAVE_KEY = 'syndicate-city-save-v1'
 export const SAVE_VERSION = 1
@@ -15,13 +17,13 @@ export const GOLD_PRICES = { energy: 10, stamina: 10, crate: 15 }
 const INCOME_CAP_HOURS = 24
 
 // ---------- helpers ----------
-const rand = (a, b) => a + Math.random() * (b - a)
-const randInt = (a, b) => Math.floor(rand(a, b + 1))
-const pick = (arr) => arr[Math.floor(Math.random() * arr.length)]
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
-const clone = (s) => structuredClone(s)
+export const rand = (a, b) => a + Math.random() * (b - a)
+export const randInt = (a, b) => Math.floor(rand(a, b + 1))
+export const pick = (arr) => arr[Math.floor(Math.random() * arr.length)]
+export const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
+export const clone = (s) => structuredClone(s)
 export const fmt = (n) => Math.floor(n).toLocaleString('en-US')
-export const money = (n) => '$' + fmt(n)
+export const money = (n) => (n < 0 ? '-$' : '$') + fmt(Math.abs(n))
 
 // ---- Balance knobs (tune with `npm run sim`) ----
 export const BALANCE = {
@@ -36,11 +38,11 @@ export const BALANCE = {
 }
 export const xpForNext = (level) => Math.floor(BALANCE.xpBase * Math.pow(level, BALANCE.xpExp))
 
-function log(s, text, kind = 'info') {
+export function log(s, text, kind = 'info') {
   s.log.unshift({ id: Date.now() + Math.random(), t: Date.now(), text, kind })
   s.log = s.log.slice(0, 60)
 }
-function toast(s, text, kind = 'info') {
+export function toast(s, text, kind = 'info') {
   s.toast = { id: Date.now() + Math.random(), text, kind }
 }
 
@@ -84,6 +86,7 @@ export function newGame(bossName, factionId) {
     revenge: [],
     perks: {},
     boosts: {},
+    clan: null,
     promotion: null,
     toast: null,
   }
@@ -109,6 +112,7 @@ export function loadGame() {
     s.revenge ??= []
     s.perks ??= {}
     s.boosts ??= {}
+    s.clan ??= null
     return s
   } catch {
     return null
@@ -139,6 +143,7 @@ export function perksOf(s) {
   const add = (k, v) => { out[k] = (out[k] || 0) + v }
   for (const p of PASSIVE_PERKS) { const lv = s.perks?.[p.id] || 0; if (lv) add(p.key, p.per * lv) }
   for (const b of activeBoosts(s)) for (const [k, v] of Object.entries(b.effects)) add(k, v)
+  for (const [k, v] of Object.entries(clanPerks(s))) add(k, v)
   return out
 }
 
@@ -226,6 +231,7 @@ export function tick(state, now = Date.now()) {
   for (let i = 0; i < raids; i++) incomingRaid(s, d)
 
   worldTick(s, now, dt)
+  clanTick(s, now, dt)
 
   // Refresh the rival board every 10 minutes.
   if (now - s.rivalsRefreshedAt > 10 * 60 * 1000) { s.rivals = makeRivals(s); s.rivalsRefreshedAt = now }
@@ -234,6 +240,7 @@ export function tick(state, now = Date.now()) {
 
 function incomingRaid(s, d) {
   if (s.health < HOSPITAL_THRESHOLD || s.level < 2) return
+  if (Math.random() < (s.clan?.upgrades?.safehouses || 0) * 0.06) return // Safehouses: raids are rarer
   if (d.perks.raidShield) {
     log(s, 'Your bodyguards turned away a rival crew looking for trouble.', 'win')
     return
@@ -261,7 +268,7 @@ function incomingRaid(s, d) {
 }
 
 // ---------- leveling ----------
-function gainXp(s, amount) {
+export function gainXp(s, amount) {
   s.xp += amount
   const startRank = rankOf(s)
   let leveled = false
@@ -324,7 +331,8 @@ export function doJob(state, jobId) {
   if (s.energy < job.energy) { toast(s, 'Not enough Energy.', 'error'); return s }
   const pk = perksOf(s)
   s.energy -= job.energy
-  const cash = Math.floor(randInt(job.cashMin, job.cashMax) * (1 + (pk.jobCash || 0)))
+  const turfBonus = s.clan && heldDistricts(s.clan).includes(job.district) ? TURF.jobCashBonus : 0
+  const cash = Math.floor(randInt(job.cashMin, job.cashMax) * (1 + (pk.jobCash || 0) + turfBonus))
   const xp = Math.round(job.xp * (1 + (pk.jobXp || 0)))
   s.cash += cash
   s.stats.cashEarned += cash
@@ -360,6 +368,7 @@ export function doJob(state, jobId) {
     }
   }
   s.mastery[job.id] = m
+  clanEvent(s, 'job')
   toast(s, `${job.name}: ${parts.join(' · ')}`, 'win')
   gainXp(s, xp)
   return s
@@ -545,7 +554,7 @@ function sigAtkForLevel(level) {
   return t
 }
 
-function rivalName(factionId) {
+export function rivalName(factionId) {
   const pool = RIVAL_NAMES[factionId]
   return Math.random() < 0.4 ? `${pick(pool.first)} ${pick(pool.tag)} ${pick(pool.last)}` : `${pick(pool.first)} ${pick(pool.last)}`
 }
@@ -616,6 +625,7 @@ export function attackRival(state, rivalId) {
     s.stats.cashEarned += stolen
     s.health = Math.max(0, s.health - taken)
     s.stats.fightsWon++
+    clanEvent(s, 'fight')
     msg = `${crit ? 'CRITICAL! ' : ''}${isRevenge ? 'REVENGE! ' : ''}You beat ${r.name} and took ${money(stolen)}. +${xp} XP, -${taken} HP.`
     if (isRevenge) s.revenge = s.revenge.filter((x) => x.id !== r.id)
     // Fight Club exclusive contraband drop
@@ -792,6 +802,7 @@ export function attackBoss(state, districtId) {
     toast(s, msg, ratio >= 0.8 ? 'win' : 'error')
   }
   s.bosses[districtId] = bs
+  clanEvent(s, 'boss')
   gainXp(s, xp)
   return s
 }
@@ -816,7 +827,7 @@ export function importSave(code) {
     throw new Error('The backup code is damaged or incomplete.')
   }
   if (!s || s.version !== SAVE_VERSION || !getFaction(s.factionId) || typeof s.level !== 'number') throw new Error('The backup code is not a valid save.')
-  s.achievements ??= {}; s.daily ??= { last: null, streak: 0 }; s.bosses ??= {}; s.revenge ??= []; s.perks ??= {}; s.boosts ??= {}
+  s.achievements ??= {}; s.daily ??= { last: null, streak: 0 }; s.bosses ??= {}; s.revenge ??= []; s.perks ??= {}; s.boosts ??= {}; s.clan ??= null
   s.lastTick = Date.now()
   s.toast = { id: Date.now(), text: `Welcome back, ${s.bossName}. Save restored.`, kind: 'level' }
   return s
@@ -947,6 +958,7 @@ export function attackWorld(state) {
   const target = worldTarget(w)
   target.unit.hp = Math.max(0, target.unit.hp - dmg)
   w.damage += dmg
+  clanEvent(s, 'world')
   s.health = Math.max(0, s.health - taken)
   let xp = 4 + Math.floor(s.level / 2)
   let msg = `${crit ? 'CRITICAL! ' : ''}You hit ${target.unit.name} for ${fmt(dmg)}${turf > 1 ? ' (home turf)' : ''}. -${taken} HP.`
