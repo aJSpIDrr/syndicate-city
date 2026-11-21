@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { Coins, Lock, UserPlus, Gift, UserMinus, RefreshCw, Swords, Timer, Check, MapPin, Flag, Zap, Star, Shuffle } from 'lucide-react'
 import { DISTRICTS } from '../../data/content'
-import { CLAN, CREST, SPECIALTIES, ROLES, CLAN_UPGRADES, upgradeCost, RIVAL_CLANS, TURF, WAR, HEISTS, CONTRACTS } from '../../data/clan'
+import { CLAN, CREST, SPECIALTIES, ROLES, CLAN_UPGRADES, upgradeCost, RIVAL_CLANS, TURF, WAR, HEISTS, CONTRACTS, STANDINGS, WAR_MIN_RANK } from '../../data/clan'
 import {
   clanLevel, clanSlots, foundClan, donate, hireRecruit, hireCost, giftCost, giftMember, dismissMember, assignRole,
   rerollRecruits, buyClanUpgrade, pushTurf, heldDistricts, declareWar, claimWar, heistChance, startHeist, collectHeist,
   contractReward, claimContract, clanIncomePerHour, memberIncome, rankOfMember, clanPerks,
+  playerRank, memberRank, memberRankTitle, standingOf, roleActive, nextMemberLevelIn,
 } from '../../game/clan'
 import { money, fmt } from '../../game/engine'
+import { getFaction } from '../../data/factions'
 import { ASSET_MAP } from '../../assetMap'
 import { DistrictScene } from '../../art/Scenes'
 import { Section, Stat, Bar } from '../ui'
@@ -54,7 +56,7 @@ function Founding({ s, run }) {
               <li>• Daily contracts, family levels and upgrades</li>
             </ul>
             {locked ? (
-              <div className="flex items-center gap-2 rounded border border-line bg-black/30 p-2 text-stone-400"><Lock size={14} /> Unlocks at Level {CLAN.foundLevel} (you're Level {s.level}).</div>
+              <div className="flex items-center gap-2 rounded border border-line bg-black/30 p-2 text-stone-400"><Lock size={14} /> Unlocks at Level {CLAN.foundLevel}, faction Rank 2 (you're Level {s.level}).</div>
             ) : (
               <>
                 <div className="grid gap-2 sm:grid-cols-[1fr_110px]">
@@ -103,7 +105,8 @@ function ClanHome({ s, d, run }) {
         <Crest crest={c.crest} size={64} tag={c.tag} />
         <div className="min-w-0 flex-1">
           <div className="font-display text-xl font-bold text-stone-100">{c.name} <span className="text-sm text-gold">[{c.tag}]</span></div>
-          <div className="text-[12px] text-stone-400">Family level {lv.level} · {c.members.length}/{clanSlots(c)} members · {heldDistricts(c).length} districts held · Wars {c.warsWon}W–{c.warsLost}L</div>
+          <div className="text-[12px] font-semibold text-gold">Your standing: {standingOf(s).title} <span className="font-normal text-stone-500">· {getFaction(s.factionId).ranks[playerRank(s)].title}, faction Rank {playerRank(s) + 1}</span></div>
+          <div className="text-[12px] text-stone-400">Family level {lv.level} · {c.members.length}/{clanSlots(c, s)} members · {heldDistricts(c).length} districts held · Wars {c.warsWon}W–{c.warsLost}L</div>
           <div className="mt-1 flex items-center gap-2">
             <div className="w-48"><Bar value={c.xp - lv.base} max={(lv.next || c.xp) - lv.base || 1} color="var(--accent)" height={5} /></div>
             <span className="text-[10px] text-stone-500">{lv.next ? `${fmt(c.xp - lv.base)}/${fmt(lv.next - lv.base)} XP` : 'Max level'}</span>
@@ -124,7 +127,7 @@ function ClanHome({ s, d, run }) {
       {sub === 'overview' && <Overview s={s} run={run} />}
       {sub === 'members' && <Members s={s} run={run} />}
       {sub === 'turf' && <TurfWar s={s} d={d} run={run} />}
-      {sub === 'heists' && <Heists s={s} run={run} />}
+      {sub === 'heists' && <Heists s={s} d={d} run={run} />}
       {sub === 'upgrades' && <Upgrades s={s} run={run} />}
     </div>
   )
@@ -137,7 +140,7 @@ function Overview({ s, run }) {
   const contracts = c.contracts || { list: [] }
   const reward = contractReward(s)
   const perks = clanPerks(s)
-  const perkText = Object.entries(perks).filter(([k]) => !['clanPower', 'treasuryIncome'].includes(k)).map(([k, v]) => `${k === 'bankFeeCut' ? '-' : '+'}${(v * 100).toFixed(1).replace('.0', '')}% ${({ attack: 'Attack', defense: 'Defense', jobCash: 'Job cash', jobXp: 'Job XP', propertyIncome: 'Property income', bankFeeCut: 'Bank fee' })[k] || k}`)
+  const perkText = Object.entries(perks).filter(([k]) => !['clanPower', 'treasuryIncome'].includes(k)).map(([k, v]) => `${k === 'bankFeeCut' ? '-' : '+'}${(v * 100).toFixed(1).replace('.0', '')}% ${({ attack: 'Attack', defense: 'Defense', jobCash: 'Job cash', jobXp: 'Job XP', propertyIncome: 'Property income', bankFeeCut: 'Bank fee', heistBonus: 'Heist success', energyRegen: 'Energy regen', staminaRegen: 'Stamina regen', worldDamage: 'World Enemy & boss damage' })[k] || k}`)
   const n = Math.max(0, Math.floor(Number(amt) || 0))
   return (
     <div className="grid gap-3 lg:grid-cols-2">
@@ -201,10 +204,10 @@ function Overview({ s, run }) {
 function Members({ s, run }) {
   const c = s.clan
   const now = Date.now()
-  const slotsFull = c.members.length >= clanSlots(c)
+  const slotsFull = c.members.length >= clanSlots(c, s)
   return (
     <div className="space-y-3">
-      <Section flush title={`Members ${c.members.length}/${clanSlots(c)}`}>
+      <Section flush title={`Members ${c.members.length}/${clanSlots(c, s)}`}>
         {c.members.length === 0 && <p className="px-3 py-3 text-[13px] text-stone-400">No members yet. Sign someone from the recruits below.</p>}
         {c.members.map((m) => {
           const busy = m.busyUntil > now
@@ -214,7 +217,7 @@ function Members({ s, run }) {
               <Avatar factionId={m.faction} rank={rankOfMember(m)} size={44} />
               <div className="min-w-0 flex-1 basis-[calc(100%-60px)] sm:basis-auto">
                 <div className="flex flex-wrap items-center gap-1.5"><span className="font-bold text-stone-100">{m.name}</span><SpecChip spec={m.spec} />{role && <span className="chip bg-gold/20 text-gold">{role.name}</span>}{busy && <span className="chip bg-blue-900/50 text-blue-300">Busy {fmtLeft(m.busyUntil - now)}</span>}</div>
-                <div className="mt-0.5 flex items-center gap-2 text-[11px] text-stone-400"><span>Lv {m.level}</span><Skill v={m.skill} /><span>Wage {money(m.wage)}/day</span>{memberIncome(m) > 0 && <span className="text-green-400">Earns {money(memberIncome(m))}/hr</span>}</div>
+                <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-stone-400"><span style={{ color: getFaction(m.faction).accent }}>{memberRankTitle(m)} (R{memberRank(m) + 1})</span><span>Lv {m.level}{m.level < s.level + 2 && <span className="text-stone-500"> · next in {fmtLeft(nextMemberLevelIn(m) * 3600000)}</span>}</span><Skill v={m.skill} /><span>Wage {money(m.wage)}/day</span>{memberIncome(m) > 0 && <span className="text-green-400">Earns {money(memberIncome(m))}/hr</span>}</div>
               </div>
               <div className="w-full shrink-0 sm:w-28">
                 <div className="k">Loyalty</div>
@@ -231,24 +234,55 @@ function Members({ s, run }) {
       </Section>
 
       <Section flush title="Positions">
-        <p className="border-b border-[#24272D] px-3 py-2 text-[11px] text-stone-400">Each position gives you a personal bonus based on the member's skill. One member per position.</p>
+        <p className="border-b border-[#24272D] px-3 py-2 text-[11px] text-stone-400">Each position gives you a personal bonus based on the member's skill. You need a high enough faction rank to create a position, and the member needs a high enough rank in their own faction to hold it. Members rise a level every 12 hours they serve.</p>
         {ROLES.map((r) => {
           const holder = c.members.find((m) => c.roles[r.id] === m.id)
+          const locked = playerRank(s) < r.playerRank
+          const active = roleActive(s, r, holder)
           const eff = Object.entries(r.effects).map(([k, v]) => `${k === 'bankFeeCut' ? '-' : '+'}${(v * 100 * (holder?.skill || 1)).toFixed(1).replace('.0', '')}%`).join(' / ')
           return (
-            <div key={r.id} className="row flex-wrap sm:flex-nowrap">
+            <div key={r.id} className={`row flex-wrap sm:flex-nowrap ${locked ? 'opacity-55' : ''}`}>
               <div className="min-w-0 flex-1">
-                <div className="font-bold text-stone-100">{r.name}</div>
+                <div className="flex flex-wrap items-center gap-1.5"><span className="font-bold text-stone-100">{r.name}</span>
+                  <span className="chip bg-white/5 text-stone-400">You R{r.playerRank + 1}+ · Member R{r.memberRank + 1}+</span>
+                  {holder && !active && <span className="chip bg-red-900/50 text-red-300">Inactive</span>}
+                </div>
                 <div className="text-[11px] text-stone-400">{r.desc}{holder ? `: ${eff}` : ` (${eff} per skill point)`}</div>
               </div>
-              <select value={holder?.id || ''} onChange={(e) => run(assignRole, r.id, e.target.value || null)}
-                className="w-full rounded border border-line bg-black/50 px-2 py-1.5 text-[13px] text-stone-200 outline-none focus:border-gold sm:w-64">
-                <option value="">— Vacant —</option>
-                {c.members.map((m) => <option key={m.id} value={m.id}>{m.name} ({SPECIALTIES[m.spec].name}, skill {m.skill})</option>)}
-              </select>
+              {locked ? (
+                <div className="flex w-full items-center gap-1 text-[12px] text-stone-400 sm:w-64"><Lock size={12} /> Unlocks at faction Rank {r.playerRank + 1}: {getFaction(s.factionId).ranks[r.playerRank].title}</div>
+              ) : (
+                <select value={holder?.id || ''} onChange={(e) => run(assignRole, r.id, e.target.value || null)}
+                  className="w-full rounded border border-line bg-black/50 px-2 py-1.5 text-[13px] text-stone-200 outline-none focus:border-gold sm:w-64">
+                  <option value="">— Vacant —</option>
+                  {c.members.map((m) => {
+                    const ok = memberRank(m) >= r.memberRank
+                    return <option key={m.id} value={m.id} disabled={!ok}>{m.name} ({SPECIALTIES[m.spec].name}, skill {m.skill}){ok ? '' : ` · needs R${r.memberRank + 1}`}</option>
+                  })}
+                </select>
+              )}
             </div>
           )
         })}
+      </Section>
+
+      <Section title="Your Standing">
+        <div className="grid gap-1.5 sm:grid-cols-3">
+          {STANDINGS.map((st, i) => {
+            const here = standingOf(s).title === st.title
+            const reached = playerRank(s) >= st.fromRank
+            const nextFrom = STANDINGS[i + 1]?.fromRank ?? 99
+            const unlocks = ROLES.filter((r) => r.playerRank >= st.fromRank && r.playerRank < nextFrom).map((r) => r.name)
+            return (
+              <div key={st.title} className={`rounded border p-2 text-[12px] ${here ? 'border-gold bg-gold/10' : reached ? 'border-[#3A3F47] bg-black/20' : 'border-[#24272D] bg-black/20 opacity-55'}`}>
+                <div className={`font-bold ${here ? 'text-gold' : 'text-stone-200'}`}>{st.title}</div>
+                <div className="text-[11px] text-stone-400">Faction Rank {st.fromRank + 1}+ · +{st.slots} member slot{st.slots === 1 ? '' : 's'}</div>
+                <div className="text-[10px] text-stone-500">{unlocks.length ? `Unlocks: ${unlocks.join(', ')}` : '—'}</div>
+              </div>
+            )
+          })}
+        </div>
+        <p className="mt-2 text-[11px] text-stone-500">Rise in your faction (every 5 levels) to unlock higher positions, more member slots and family wars (Rank {WAR_MIN_RANK + 1}).</p>
       </Section>
 
       <Section flush title="Recruits"
@@ -259,7 +293,7 @@ function Members({ s, run }) {
             <Avatar factionId={m.faction} rank={rankOfMember(m)} size={44} />
             <div className="min-w-0 flex-1 basis-[calc(100%-60px)] sm:basis-auto">
               <div className="flex flex-wrap items-center gap-1.5"><span className="font-bold text-stone-100">{m.name}</span><SpecChip spec={m.spec} /></div>
-              <div className="mt-0.5 flex items-center gap-2 text-[11px] text-stone-400"><span>Lv {m.level}</span><Skill v={m.skill} /><span>Wage {money(m.wage)}/day</span><span className="hidden text-stone-500 sm:inline">{SPECIALTIES[m.spec].desc}</span></div>
+              <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-stone-400"><span style={{ color: getFaction(m.faction).accent }}>{memberRankTitle(m)} (R{memberRank(m) + 1})</span><span>Lv {m.level}</span><Skill v={m.skill} /><span>Wage {money(m.wage)}/day</span><span className="hidden text-stone-500 sm:inline">{SPECIALTIES[m.spec].desc}</span></div>
             </div>
             <div className="flex w-full shrink-0 items-center justify-end gap-2 sm:w-44">
               <span className="font-bold text-green-400">{money(hireCost(m))}</span>
@@ -311,14 +345,15 @@ function TurfWar({ s, d, run }) {
           </div>
         ) : (
           <>
-            <p className="mb-2 text-[12px] text-stone-400">Declare a 24-hour war on a rival clan. It costs {money(warCost)} from the treasury. Win for spoils, Gold and family XP.</p>
+            {playerRank(s) < WAR_MIN_RANK && <div className="mb-2 flex items-center gap-2 rounded border border-line bg-black/30 p-2 text-[12px] text-stone-300"><Lock size={13} /> You need faction Rank {WAR_MIN_RANK + 1} ({getFaction(s.factionId).ranks[WAR_MIN_RANK].title}, Level 10) to lead a family war.</div>}
+            <p className="mb-2 text-[12px] text-stone-400">Declare a 24-hour war on a rival family. It costs {money(warCost)} from the treasury. Win for spoils, Gold and family XP.</p>
             {RIVAL_CLANS.map((r) => {
               const truce = (c.truce[r.id] || 0) > now
               return (
                 <div key={r.id} className="row">
                   <span className="flex h-8 w-8 items-center justify-center rounded border-2 text-[10px] font-extrabold" style={{ borderColor: r.color, color: r.color }}>{r.tag}</span>
                   <div className="min-w-0 flex-1"><div className="font-bold text-stone-100">{r.name}</div><div className="text-[11px] text-stone-400">Strength {r.power >= 1.2 ? 'Fearsome' : r.power >= 1.05 ? 'Strong' : r.power >= 0.95 ? 'Even' : 'Weak'}</div></div>
-                  <button className="classic-btn" style={{ '--accent': '#DC2626' }} disabled={truce || c.treasury < warCost} onClick={() => run(declareWar, r.id)}>{truce ? `Truce ${fmtLeft(c.truce[r.id] - now)}` : <><Swords size={12} /> Declare war</>}</button>
+                  <button className="classic-btn" style={{ '--accent': '#DC2626' }} disabled={truce || c.treasury < warCost || playerRank(s) < WAR_MIN_RANK} onClick={() => run(declareWar, r.id)}>{truce ? `Truce ${fmtLeft(c.truce[r.id] - now)}` : <><Swords size={12} /> Declare war</>}</button>
                 </div>
               )
             })}
@@ -363,7 +398,7 @@ function TurfWar({ s, d, run }) {
   )
 }
 
-function Heists({ s, run }) {
+function Heists({ s, d, run }) {
   const c = s.clan
   const now = Date.now()
   const [picked, setPicked] = useState({})
@@ -399,7 +434,7 @@ function Heists({ s, run }) {
           const sel = picked[h.id] || []
           const running = c.heists.some((x) => x.heistId === h.id)
           const locked = s.level < h.level
-          const chance = sel.length ? heistChance(c, h, sel) : null
+          const chance = sel.length ? heistChance(c, h, sel, d.perks.heistBonus || 0) : null
           return (
             <div key={h.id} className={`border-b border-[#24272D] px-3 py-2.5 ${locked ? 'opacity-55' : ''}`}>
               <div className="flex flex-wrap items-center gap-2">

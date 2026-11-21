@@ -2,6 +2,18 @@
 // players see a "What's New" popup once when the top entry's id changes.
 export const CHANGELOG = [
   {
+    id: '1.14',
+    date: '2026-11-21',
+    title: 'Family Ranks',
+    items: [
+      'Your standing in your family now follows your faction rank: Crew Leader, Gang Boss, Family Captain, Family Head, Don of the City and Boss of All Bosses. Each step adds member slots.',
+      'Eight family positions, each unlocking at a faction rank. The member you appoint must also hold a high enough rank in their own faction.',
+      'New positions: Chief Smuggler (heist success), Street Boss (Energy and Stamina refill) and the Commission Seat (World Enemy and boss damage).',
+      'Family members now rise a level every 12 hours they serve, earning promotions in their faction.',
+      'Leading a family war needs faction Rank 3.',
+    ],
+  },
+  {
     id: '1.13',
     date: '2026-11-21',
     title: 'Clans Are Now Families',
@@ -20,7 +32,7 @@ export const CHANGELOG = [
       'Recruit AI mobsters: Earners, Enforcers, Smugglers and Strategists, each with skill, loyalty and a daily wage. They talk in the family feed and walk out if you stop paying them.',
       'Appoint an Underboss, Consigliere, two Capos and a Treasurer for personal bonuses.',
       'Turf map: take all 8 districts from rival families for treasury income and +10% job cash there.',
-      '24-hour family wars against five rival clans. Fights, turf pushes and World Enemy hits all score.',
+      '24-hour family wars against five rival families. Fights, turf pushes and World Enemy hits all score.',
       'Timed heists: pick a crew of specialists, pay the prep and come back for the haul.',
       'Treasury, family levels, six upgrades and three daily contracts.',
     ],

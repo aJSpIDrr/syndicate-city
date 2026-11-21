@@ -8,7 +8,7 @@ const PATHS = {
   hex: 'M50 3 L92 27 V73 L50 97 L8 73 V27 Z',
 }
 
-/** Clan crest drawn from the designer's choices (no images needed). */
+/** Family crest drawn from the designer's choices (no images needed). */
 export default function Crest({ crest, size = 64, tag }) {
   const c = crest || { shape: 'shield', c1: '#D4AF37', c2: '#111827', symbol: 'crown' }
   const Icon = ICONS[c.symbol] || Crown

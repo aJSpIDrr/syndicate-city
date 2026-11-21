@@ -22,13 +22,31 @@ export const SPECIALTIES = {
 }
 
 // Positions: one member each. Bonus = per x the member's skill (1–10), applied to you personally.
+// playerRank / memberRank are faction rank indexes (0 = Rank 1 ... 9 = Rank 10): you need playerRank to
+// create the position, and the member you appoint needs memberRank in their own faction.
 export const ROLES = [
-  { id: 'underboss', name: 'Underboss', desc: 'Attack and Defense', effects: { attack: 0.01, defense: 0.01 } },
-  { id: 'consigliere', name: 'Consigliere', desc: 'Job XP and a lower bank fee', effects: { jobXp: 0.01, bankFeeCut: 0.002 } },
-  { id: 'capo_rackets', name: 'Capo of Rackets', desc: 'Job cash', effects: { jobCash: 0.015 } },
-  { id: 'capo_muscle', name: 'Capo of Muscle', desc: 'Turf pushes and war points', effects: { clanPower: 0.04 } },
-  { id: 'treasurer', name: 'Treasurer', desc: 'Treasury income and property income', effects: { treasuryIncome: 0.05, propertyIncome: 0.01 } },
+  { id: 'capo_rackets', name: 'Capo of Rackets', desc: 'Job cash', effects: { jobCash: 0.015 }, playerRank: 1, memberRank: 1 },
+  { id: 'capo_muscle', name: 'Capo of Muscle', desc: 'Turf pushes and war points', effects: { clanPower: 0.04 }, playerRank: 2, memberRank: 2 },
+  { id: 'treasurer', name: 'Treasurer', desc: 'Treasury income and property income', effects: { treasuryIncome: 0.05, propertyIncome: 0.01 }, playerRank: 3, memberRank: 2 },
+  { id: 'chief_smuggler', name: 'Chief Smuggler', desc: 'Heist success chance', effects: { heistBonus: 0.008 }, playerRank: 4, memberRank: 3 },
+  { id: 'street_boss', name: 'Street Boss', desc: 'Energy and Stamina refill faster', effects: { energyRegen: 0.008, staminaRegen: 0.008 }, playerRank: 5, memberRank: 4 },
+  { id: 'consigliere', name: 'Consigliere', desc: 'Job XP and a lower bank fee', effects: { jobXp: 0.01, bankFeeCut: 0.002 }, playerRank: 6, memberRank: 5 },
+  { id: 'underboss', name: 'Underboss', desc: 'Attack and Defense', effects: { attack: 0.01, defense: 0.01 }, playerRank: 8, memberRank: 6 },
+  { id: 'commission', name: 'Commission Seat', desc: 'Damage against World Enemies and district bosses', effects: { worldDamage: 0.02 }, playerRank: 9, memberRank: 7 },
 ]
+
+// Your standing as head of the family follows your faction rank (index 0–9).
+export const STANDINGS = [
+  { title: 'Crew Leader', fromRank: 0, slots: 0 },
+  { title: 'Gang Boss', fromRank: 2, slots: 1 },
+  { title: 'Family Captain', fromRank: 4, slots: 2 },
+  { title: 'Family Head', fromRank: 6, slots: 3 },
+  { title: 'Don of the City', fromRank: 8, slots: 4 },
+  { title: 'Boss of All Bosses', fromRank: 9, slots: 6 },
+]
+export const standingFor = (rank) => [...STANDINGS].reverse().find((x) => rank >= x.fromRank)
+export const WAR_MIN_RANK = 2 // Rank 3
+export const MEMBER_LEVEL_HOURS = 12 // members gain a level every 12h in the family (up to your level + 2)
 
 // Upgrades bought from the treasury. Max level = family level. Cost = base x growth^level.
 export const CLAN_UPGRADES = [

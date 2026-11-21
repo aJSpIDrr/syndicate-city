@@ -783,7 +783,7 @@ export function attackBoss(state, districtId) {
   s.energy -= b.energy
   const crit = Math.random() < d.crit
   const ratio = (d.pAtk * (crit ? 1.5 : 1)) / Math.max(1, st.def * (1 - d.pen))
-  const dmg = Math.max(1, Math.round(rand(8, 14) * clamp(ratio, 0.3, 1.7)))
+  const dmg = Math.max(1, Math.round(rand(8, 14) * clamp(ratio, 0.3, 1.7) * (1 + (d.perks.worldDamage || 0))))
   const taken = Math.round(rand(4, 9) * clamp(st.atk / Math.max(1, d.pDef), 0.5, 2.2))
   bs.hp = Math.max(0, bs.hp - dmg)
   s.health = Math.max(0, s.health - taken)
@@ -953,7 +953,7 @@ export function attackWorld(state) {
   const crit = Math.random() < d.crit
   const turf = worldTurf(s, w) ? 1 + WORLD.turfBonus : 1
   const ratio = clamp(d.pAtk / Math.max(1, w.def * (1 - d.pen)), 0.5, 1.4)
-  const dmg = Math.max(1, Math.round(d.pAtk * rand(0.75, 1.1) * (crit ? 1.5 : 1) * ratio * turf))
+  const dmg = Math.max(1, Math.round(d.pAtk * rand(0.75, 1.1) * (crit ? 1.5 : 1) * ratio * turf * (1 + (d.perks.worldDamage || 0))))
   const taken = Math.round(rand(3, 8) * clamp(w.atk / Math.max(1, d.pDef), 0.5, 2))
   const target = worldTarget(w)
   target.unit.hp = Math.max(0, target.unit.hp - dmg)

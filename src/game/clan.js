@@ -1,13 +1,15 @@
 // Family engine: your crime family of AI members. Everything here works on a cloned state and
 // is called from the main engine (tick, perks, events) or from the Family screen.
-import { FACTIONS, getFaction } from '../data/factions.js'
+import { FACTIONS, getFaction, rankIndexForLevel } from '../data/factions.js'
 import { DISTRICTS } from '../data/content.js'
 import {
   CLAN, SPECIALTIES, ROLES, CLAN_UPGRADES, upgradeCost, RIVAL_CLANS, TURF, WAR, HEISTS, CONTRACTS, CHATTER,
+  standingFor, WAR_MIN_RANK, MEMBER_LEVEL_HOURS,
 } from '../data/clan.js'
 import { rand, randInt, pick, clamp, clone, log, toast, money, gainXp, rivalName, derive } from './engine.js'
 
 const H = 3600000
+const an = (w) => (/^[AEIOU]/i.test(w) ? 'an' : 'a') + ' ' + w
 const dayKey = (t = Date.now()) => new Date(t).toLocaleDateString('en-CA')
 const uid = () => Math.random().toString(36).slice(2, 9)
 const specs = Object.keys(SPECIALTIES)
@@ -19,8 +21,15 @@ export function clanLevel(c) {
   while (level < t.length && c.xp >= t[level]) level++
   return { level, base: t[level - 1], next: level < t.length ? t[level] : null }
 }
-export function clanSlots(c) {
-  return CLAN.baseSlots + Math.floor(clanLevel(c).level / 2) + (c.upgrades.barracks || 0)
+export const playerRank = (s) => rankIndexForLevel(s.level)
+export const memberRank = (m) => rankIndexForLevel(m.level)
+export const memberRankTitle = (m) => getFaction(m.faction).ranks[memberRank(m)].title
+export const standingOf = (s) => standingFor(playerRank(s))
+/** A position only works while you and the member both hold the required faction ranks. */
+export function roleActive(s, role, m) { return !!m && playerRank(s) >= role.playerRank && memberRank(m) >= role.memberRank }
+
+export function clanSlots(c, s) {
+  return CLAN.baseSlots + Math.floor(clanLevel(c).level / 2) + (c.upgrades.barracks || 0) + (s ? standingOf(s).slots : 0)
 }
 export function memberById(c, id) { return c.members.find((m) => m.id === id) }
 
@@ -32,7 +41,7 @@ export function clanPerks(s) {
   const add = (k, v) => { out[k] = (out[k] || 0) + v }
   for (const r of ROLES) {
     const m = c.roles[r.id] && memberById(c, c.roles[r.id])
-    if (m) for (const [k, v] of Object.entries(r.effects)) add(k, v * m.skill)
+    if (roleActive(s, r, m)) for (const [k, v] of Object.entries(r.effects)) add(k, v * m.skill)
   }
   for (const u of CLAN_UPGRADES) {
     const lv = c.upgrades[u.id] || 0
@@ -57,7 +66,7 @@ function makeMember(level) {
 }
 export const hireCost = (m) => Math.round(m.wage * 4 + m.skill * m.skill * 400)
 export const giftCost = (m) => Math.round(m.wage * 1.5)
-const rankOfMember = (m) => Math.min(9, Math.floor(m.level / 5))
+const rankOfMember = (m) => memberRank(m)
 export { rankOfMember }
 
 // ---------- founding ----------
@@ -114,7 +123,7 @@ export function hireRecruit(state, id) {
   const c = s.clan
   const m = c.recruits.find((x) => x.id === id)
   if (!m) return state
-  if (c.members.length >= clanSlots(c)) { toast(s, 'No free member slots. Level up the family or build Barracks.', 'error'); return s }
+  if (c.members.length >= clanSlots(c, s)) { toast(s, 'No free member slots. Level up the family, build Barracks or rise in faction rank.', 'error'); return s }
   const cost = hireCost(m)
   if (s.cash < cost) { toast(s, `Signing ${m.name} costs ${money(cost)} cash on hand.`, 'error'); return s }
   s.cash -= cost
@@ -135,7 +144,7 @@ export function dismissMember(state, id) {
   c.members = c.members.filter((x) => x.id !== id)
   for (const r of Object.keys(c.roles)) if (c.roles[r] === id) delete c.roles[r]
   feed(s, null, `${m.name} was let go.`, 'leave')
-  toast(s, `${m.name} has left the clan.`, 'info')
+  toast(s, `${m.name} has left the family.`, 'info')
   return s
 }
 
@@ -156,6 +165,12 @@ export function giftMember(state, id) {
 export function assignRole(state, roleId, memberId) {
   const s = clone(state)
   const c = s.clan
+  const req = ROLES.find((r) => r.id === roleId)
+  if (memberId) {
+    const cand = memberById(c, memberId)
+    if (playerRank(s) < req.playerRank) { toast(s, `You need faction Rank ${req.playerRank + 1} to appoint ${an(req.name)}.`, 'error'); return s }
+    if (!cand || memberRank(cand) < req.memberRank) { toast(s, `${an(req.name).replace(/^a/, 'A')} must be at least Rank ${req.memberRank + 1} in their own faction.`, 'error'); return s }
+  }
   for (const r of Object.keys(c.roles)) if (c.roles[r] === memberId) delete c.roles[r]
   if (memberId) c.roles[roleId] = memberId
   else delete c.roles[roleId]
@@ -246,6 +261,7 @@ export function declareWar(state, rivalId) {
   const c = s.clan
   if (c.war && !c.war.result) return state
   const rival = RIVAL_CLANS.find((r) => r.id === rivalId)
+  if (playerRank(s) < WAR_MIN_RANK) { toast(s, `You need faction Rank ${WAR_MIN_RANK + 1} to lead a family war.`, 'error'); return s }
   if ((c.truce[rivalId] || 0) > Date.now()) { toast(s, `You're in a truce with ${rival.name}.`, 'error'); return s }
   const cost = WAR.costPerLevel * clanLevel(c).level
   if (c.treasury < cost) { toast(s, `Declaring war costs ${money(cost)} from the treasury.`, 'error'); return s }
@@ -267,13 +283,13 @@ export function claimWar(state) {
 }
 
 // ---------- heists ----------
-export function heistChance(c, heist, crewIds) {
+export function heistChance(c, heist, crewIds, bonus = 0) {
   const crew = crewIds.map((id) => memberById(c, id)).filter(Boolean)
   let score = 0
   for (const m of crew) score += m.skill * (heist.needs.includes(m.spec) ? 1.5 : 1)
   const strategists = crew.filter((m) => m.spec === 'strategist').length
   const missing = heist.needs.filter((n) => !crew.some((m) => m.spec === n)).length
-  return clamp(0.4 + (score - heist.difficulty) * 0.035 + strategists * 0.03 - missing * 0.1, 0.1, 0.95)
+  return clamp(0.4 + (score - heist.difficulty) * 0.035 + strategists * 0.03 - missing * 0.1 + bonus, 0.1, 0.95)
 }
 
 export function startHeist(state, heistId, crewIds) {
@@ -287,7 +303,7 @@ export function startHeist(state, heistId, crewIds) {
   if (crewIds.some((id) => (memberById(c, id)?.busyUntil || 0) > now)) { toast(s, 'Someone on that crew is busy.', 'error'); return s }
   if (c.treasury < h.prep) { toast(s, `Prep costs ${money(h.prep)} from the treasury.`, 'error'); return s }
   c.treasury -= h.prep
-  const chance = heistChance(c, h, crewIds)
+  const chance = heistChance(c, h, crewIds, derive(s).perks.heistBonus || 0)
   const endsAt = now + h.hours * H
   for (const id of crewIds) memberById(c, id).busyUntil = endsAt
   c.heists.push({ id: uid(), heistId, crew: crewIds, startedAt: now, endsAt, chance })
@@ -414,6 +430,18 @@ export function clanTick(s, now, dt) {
       log(s, `${m.name} left your family over unpaid wages.`, 'loss')
     }
   }
+  // Members rise through the ranks while they serve
+  for (const m of c.members) {
+    if (m.level >= s.level + 2) { m.xpHours = 0; continue }
+    m.xpHours = (m.xpHours || 0) + hours
+    while (m.xpHours >= MEMBER_LEVEL_HOURS && m.level < s.level + 2) {
+      m.xpHours -= MEMBER_LEVEL_HOURS
+      const before = memberRank(m)
+      m.level++
+      m.wage = Math.round(m.skill * (m.level + 4) * 25)
+      if (memberRank(m) > before) feed(s, null, `${m.name} was promoted to ${memberRankTitle(m)} in ${getFaction(m.faction).name}.`, 'system')
+    }
+  }
   // Strategists train the family
   const strat = c.members.filter((m) => m.spec === 'strategist').reduce((t, m) => t + m.skill, 0)
   if (strat) addClanXp(s, strat * 4 * hours)
@@ -483,3 +511,5 @@ export function clanBadge(s) {
   const war = c.war?.result ? 1 : 0
   return heists + contracts + war
 }
+
+export function nextMemberLevelIn(m) { return Math.max(0, MEMBER_LEVEL_HOURS - (m.xpHours || 0)) }
