@@ -1,4 +1,4 @@
-import { Banknote, Coins, Zap, Grab, Cross, Star, Landmark, Mail, Settings, Plus, Skull } from 'lucide-react'
+import { Banknote, Coins, Zap, Grab, Cross, Star, Landmark, Mail, Settings, Plus, Skull, ScrollText } from 'lucide-react'
 import { getFaction } from '../data/factions'
 import { xpForNext, fmt, money, cityRank, HOSPITAL_THRESHOLD, activeBoosts, worldTemplate } from '../game/engine'
 import { DISTRICTS } from '../data/content'
@@ -28,7 +28,7 @@ function Stat({ icon: Icon, color, label, value, max, sub, action }) {
   )
 }
 
-export default function Header({ s, d, tab, setTab, onOpen, badges }) {
+export default function Header({ s, d, tab, setTab, onOpen, badges, newUpdate }) {
   const f = getFaction(s.factionId)
   const need = xpForNext(s.level)
   const timer = (m, max) => (s[m] >= max ? 'Full' : `+${m === 'health' ? 2 : 1} in ${fmtTime(d.intervals[m] - s.regen[m])}`)
@@ -47,6 +47,7 @@ export default function Header({ s, d, tab, setTab, onOpen, badges }) {
                 <Star size={14} fill="#D4AF37" /> #{cityRank(s)}
               </div>
               <HeadBtn label="Bank" onClick={() => onOpen('bank')}><Landmark size={17} /></HeadBtn>
+              <HeadBtn label="What's New" onClick={() => onOpen('updates')} dot={newUpdate}><ScrollText size={17} /></HeadBtn>
               <HeadBtn label="Messages" onClick={() => onOpen('log')} badge={s.unread}><Mail size={17} /></HeadBtn>
               <HeadBtn label="Settings" onClick={() => onOpen('settings')}><Settings size={17} /></HeadBtn>
             </div>
@@ -63,6 +64,7 @@ export default function Header({ s, d, tab, setTab, onOpen, badges }) {
         </div>
         <div className="flex items-center gap-1 rounded border border-gold/40 bg-black/50 px-1.5 py-0.5 text-[11px] font-bold text-gold"><Star size={11} fill="#D4AF37" /> #{cityRank(s)}</div>
         <HeadBtn label="Bank" onClick={() => onOpen('bank')}><Landmark size={15} /></HeadBtn>
+        <HeadBtn label="What's New" onClick={() => onOpen('updates')} dot={newUpdate}><ScrollText size={15} /></HeadBtn>
         <HeadBtn label="Messages" onClick={() => onOpen('log')} badge={s.unread}><Mail size={15} /></HeadBtn>
         <HeadBtn label="Settings" onClick={() => onOpen('settings')}><Settings size={15} /></HeadBtn>
       </div>
@@ -142,10 +144,11 @@ export default function Header({ s, d, tab, setTab, onOpen, badges }) {
   )
 }
 
-function HeadBtn({ label, onClick, badge, children }) {
+function HeadBtn({ label, onClick, badge, dot, children }) {
   return (
     <button onClick={onClick} aria-label={label} title={label} className="relative rounded border border-black/40 bg-black/40 p-1.5 text-stone-200 hover:bg-black/70 hover:text-white">
       {children}
+      {dot && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border border-black bg-gold" />}
       {badge > 0 && <span className="absolute -right-1 -top-1 min-w-[15px] rounded-full bg-red-600 px-1 text-center text-[9px] font-bold text-white">{badge > 9 ? '9+' : badge}</span>}
     </button>
   )

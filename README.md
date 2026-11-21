@@ -45,6 +45,7 @@ The game will then be live at `https://ajspidrr.github.io/syndicate-city/`.
 - **Save backup**: copy a backup code in Settings and restore it on any device (also from the start screen).
 - **Sound effects** (WebAudio, no files) with a mute switch in Settings.
 - **Installable**: add to your phone's home screen; plays offline after the first visit.
+- **What's New**: in-game update history (scroll icon in the header), shown once after each update. Add releases at the top of `src/data/changelog.js`.
 - **Gold Store** with dev test tools (+5 Levels, +50 Gold, +$100k).
 - Saves to `localStorage`. Reset is under Settings.
 

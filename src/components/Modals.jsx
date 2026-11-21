@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { exportSave } from '../game/engine'
 import { soundEnabled, setSoundEnabled } from '../game/sound'
 import { BUILD } from './UpdateBanner'
+import { CHANGELOG } from '../data/changelog'
 import { ArrowRight, Coins, Zap, Grab, Package, FlaskConical, Landmark, Stethoscope } from 'lucide-react'
 import { getFaction, formatPerk, RANK_LEVELS } from '../data/factions'
 import {
@@ -169,7 +170,7 @@ export function BackupPanel({ s, onRestore }) {
   )
 }
 
-export function SettingsModal({ open, onClose, s, onReset, onRestore }) {
+export function SettingsModal({ open, onClose, s, onReset, onRestore, onUpdates }) {
   const [sound, setSound] = useState(soundEnabled())
   const [confirm, setConfirm] = useState(false)
   const f = getFaction(s.factionId)
@@ -180,6 +181,7 @@ export function SettingsModal({ open, onClose, s, onReset, onRestore }) {
         <div>Faction: <b style={{ color: f.accent }}>{f.name}</b></div>
         <div>Jobs done: {s.stats.jobs.toLocaleString()} · Lifetime earnings: {money(s.stats.cashEarned)}</div>
         <div className="text-xs text-stone-500">Progress saves automatically in this browser. Version {BUILD}</div>
+        {onUpdates && <button className="mt-1 text-xs font-semibold text-gold hover:underline" onClick={onUpdates}>See the update history</button>}
       </div>
       <label className="mt-4 flex cursor-pointer items-center justify-between rounded-lg border border-line bg-black/20 p-3">
         <span className="text-sm font-semibold text-stone-200">Sound effects</span>
@@ -198,6 +200,29 @@ export function SettingsModal({ open, onClose, s, onReset, onRestore }) {
           <button className="classic-btn-dark mt-3 border-red-900 text-red-300" onClick={() => setConfirm(true)}>Reset Save…</button>
         )}
       </div>
+    </Modal>
+  )
+}
+
+export function UpdatesModal({ open, onClose }) {
+  return (
+    <Modal open={open} onClose={onClose} title="What's New" wide>
+      <ol className="relative space-y-4 border-l border-line pl-5">
+        {CHANGELOG.map((u, i) => (
+          <li key={u.id} className="relative">
+            <span className={`absolute -left-[27px] top-1 h-3 w-3 rounded-full border-2 ${i === 0 ? 'border-gold bg-gold' : 'border-stone-500 bg-ink'}`} />
+            <div className="flex flex-wrap items-baseline gap-x-2">
+              <span className="font-display text-base font-bold text-stone-100">{u.title}</span>
+              <span className="text-[11px] font-semibold text-stone-500">v{u.id} · {new Date(u.date + 'T12:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+              {i === 0 && <span className="chip bg-gold text-ink">LATEST</span>}
+            </div>
+            <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[13px] text-stone-300">
+              {u.items.map((t, j) => <li key={j}>{t}</li>)}
+            </ul>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-4 text-[11px] text-stone-500">Build {BUILD}</p>
     </Modal>
   )
 }
