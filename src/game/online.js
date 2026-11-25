@@ -32,3 +32,13 @@ export async function api(method, path, body) {
   try { data = await r.json() } catch { /* empty */ }
   return { status: r.status, ...data }
 }
+
+// Lets screens call multiplayer endpoints; useGame registers how to apply the returned save / show errors.
+let applier = { state: () => {}, error: () => {} }
+export const setApplier = (a) => { applier = a }
+export async function serverAct(path, body) {
+  const r = await api('POST', path, body)
+  if (r.status === 200 && r.state) applier.state(r.state)
+  else applier.error(r.error || 'Something went wrong.')
+  return r
+}

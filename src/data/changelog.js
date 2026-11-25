@@ -2,6 +2,17 @@
 // players see a "What's New" popup once when the top entry's id changes.
 export const CHANGELOG = [
   {
+    id: '1.20',
+    date: '2026-11-25',
+    title: 'Real Rivals',
+    items: [
+      'Raid real players\' HQs: they now appear in the HQ tab (Level 5+, near your level). Steal from their safe, up to 3 raids per boss a day, and they find out who did it.',
+      'Turf Wars is one shared city map: zones can be held by real players, and taking theirs means beating their defense. Garrisons recover 8% an hour.',
+      'Families share one district map, and you can declare 24-hour wars on real players\' Families. Both sides\' scores count live.',
+      'AI rivals are still around, so the city never feels empty.',
+    ],
+  },
+  {
     id: '1.19',
     date: '2026-11-25',
     title: 'Log In With Email',

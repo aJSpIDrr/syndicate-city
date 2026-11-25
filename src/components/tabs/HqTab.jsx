@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { ONLINE, api, serverAct } from '../../game/online'
 import { Lock, Shield, Coins, Swords, RefreshCw, X, Plus } from 'lucide-react'
 import { HQ_TIERS, HQ_ROOMS, ROOM_MAX, roomCost, HQ_RAID } from '../../data/hq'
 import { ITEMS, RARITY } from '../../data/content'
@@ -116,7 +117,9 @@ export default function HqTab({ s, d, run }) {
         </div>
       </Section>
 
-      <Section flush title="Raid Rival HQs" right={<button className="classic-btn-dark" onClick={() => run(refreshRivalHqs)}><RefreshCw size={12} /> New targets</button>}>
+      {ONLINE && <RealHqs s={s} d={d} />}
+
+      <Section flush title={ONLINE ? 'Raid AI Crews\' HQs' : 'Raid Rival HQs'} right={<button className="classic-btn-dark" onClick={() => run(refreshRivalHqs)}><RefreshCw size={12} /> New targets</button>}>
         <p className="border-b border-[#24272D] px-3 py-2 text-[11px] text-stone-400">Each raid costs {HQ_RAID.stamina} Stamina. Beat the HQ's defense to steal 20–30% of its safe. Up to 3 raids per target.</p>
         {s.hq.rivals.length === 0 && <div className="p-3"><button className="classic-btn" onClick={() => run(refreshRivalHqs)}>Find targets</button></div>}
         {s.hq.rivals.map((r) => {
@@ -141,5 +144,38 @@ export default function HqTab({ s, d, run }) {
       </Section>
       <p className="flex items-center gap-1 text-[11px] text-stone-500"><Shield size={11} /> Rival crews try to raid your HQ about every {HQ_RAID.raidEveryHours} hours. Results show in Messages.</p>
     </div>
+  )
+}
+
+function RealHqs({ s, d }) {
+  const [list, setList] = useState(null)
+  const load = () => api('GET', '/api/hq/targets').then((r) => r.status === 200 && setList(r.targets))
+  useEffect(() => { load() }, [])
+  const raid = async (u) => { await serverAct('/api/hq/raid', { username: u }); load() }
+  return (
+    <Section flush title="Raid Real Bosses' HQs" right={<button className="classic-btn-dark" onClick={load}><RefreshCw size={12} /> Refresh</button>}>
+      <p className="border-b border-[#24272D] px-3 py-2 text-[11px] text-stone-400">Real players around your level (Level 5+). {HQ_RAID.stamina} Stamina per raid, up to 3 raids per boss a day. They'll know it was you.</p>
+      {!list && <p className="px-3 py-2 text-[12px] text-stone-500">Loading…</p>}
+      {list && list.length === 0 && <p className="px-3 py-2 text-[12px] text-stone-500">No real bosses near your level yet.</p>}
+      {list?.map((r) => {
+        const f = getFaction(r.faction)
+        const ratio = d.pAtk / Math.max(1, r.defense * (1 - d.pen))
+        const odds = ratio > 1.3 ? ['Easy', '#4ADE80'] : ratio > 1.05 ? ['Favored', '#A3E635'] : ratio > 0.9 ? ['Even', '#FACC15'] : ['Risky', '#F87171']
+        return (
+          <div key={r.username} className="row flex-wrap sm:flex-nowrap">
+            <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded border border-black"><img src={art(HQ_TIERS[r.tier - 1].art)} alt="" className="h-full w-full object-cover" /></div>
+            <Avatar factionId={r.faction} rank={r.rank} size={40} />
+            <div className="min-w-0 flex-1">
+              <div className="truncate font-bold text-stone-100">{r.name} <span className="text-[11px] font-normal text-pink-300">@{r.username}</span></div>
+              <div className="truncate text-[11px]" style={{ color: f.accent }}>{HQ_TIERS[r.tier - 1].name} · Lv {r.level}</div>
+              <div className="text-[11px] text-stone-400">Safe ~{money(r.safe)} · Defense {fmt(r.defense)} · <b style={{ color: odds[1] }}>{odds[0]}</b></div>
+            </div>
+            <button className="classic-btn w-full shrink-0 sm:w-28" style={{ '--accent': '#DC2626' }} disabled={s.stamina < HQ_RAID.stamina || r.raidsLeft <= 0 || s.health < 20} onClick={() => raid(r.username)}>
+              <Swords size={12} /> {r.raidsLeft <= 0 ? 'Done today' : `Raid (${r.raidsLeft})`}
+            </button>
+          </div>
+        )
+      })}
+    </Section>
   )
 }

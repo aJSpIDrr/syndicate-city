@@ -263,7 +263,7 @@ export function hqTick(s, now, dt) {
   if (Math.random() < span / HQ_RAID.raidEveryHours) hqRaidedBy(s, d)
   for (const z of ZONES) {
     const st = s.city.zones[z.id]
-    if (st.owner !== 'you' || Math.random() >= span / TURF_WAR.retakeEveryHours) continue
+    if (s.online || st.owner !== 'you' || Math.random() >= span / TURF_WAR.retakeEveryHours) continue
     const atk = zoneStrength(s, z, d) * rand(0.7, 1.25)
     if (atk > zoneDefense(s, z, d) * rand(0.85, 1.15)) {
       const f = pick(FACTIONS).id

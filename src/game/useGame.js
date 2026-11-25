@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import * as E from './engine'
 import { actionName } from './actions'
-import { ONLINE, api, getToken, getUser, setSession } from './online'
+import { ONLINE, api, getToken, getUser, setSession, setApplier } from './online'
 
 // Single reducer: actions are engine functions. `INIT` replaces state (new game / reset).
 function reducer(state, action) {
@@ -32,6 +32,7 @@ export function useGame() {
   const [phase, setPhase] = useState(ONLINE ? (getToken() ? 'loading' : 'login') : 'ready')
   const [user, setUser] = useState(getUser())
   const busy = useRef(false)
+  useEffect(() => { setApplier({ state: (st) => dispatch({ type: 'INIT', state: st }), error: (text) => dispatch({ type: 'TOAST', text }) }) }, [])
 
   const load = useCallback(async () => {
     const r = await api('GET', '/api/state')

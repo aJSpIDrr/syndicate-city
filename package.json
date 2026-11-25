@@ -9,7 +9,7 @@
     "sim": "node tools/sim.mjs",
     "server": "node server/index.mjs",
     "dev:online": "DEV_TOOLS=1 node server/index.mjs",
-    "test:server": "node tools/server-test.mjs && node tools/gift-test.mjs && node tools/auth-test.mjs"
+    "test:server": "node tools/server-test.mjs && node tools/gift-test.mjs && node tools/auth-test.mjs && node tools/world-test.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.2.17",

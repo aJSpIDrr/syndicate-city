@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Coins, Lock, UserPlus, Gift, UserMinus, RefreshCw, Swords, Timer, Check, MapPin, Flag, Zap, Star, Shuffle } from 'lucide-react'
 import { DISTRICTS } from '../../data/content'
 import { CLAN, CREST, SPECIALTIES, ROLES, CLAN_UPGRADES, upgradeCost, RIVAL_CLANS, TURF, WAR, HEISTS, CONTRACTS, STANDINGS, WAR_MIN_RANK } from '../../data/clan'
@@ -10,6 +10,7 @@ import {
 } from '../../game/clan'
 import { money, fmt } from '../../game/engine'
 import { getFaction } from '../../data/factions'
+import { ONLINE, api, serverAct } from '../../game/online'
 import { ASSET_MAP } from '../../assetMap'
 import { DistrictScene } from '../../art/Scenes'
 import { Section, Stat, Bar } from '../ui'
@@ -318,7 +319,7 @@ function TurfWar({ s, d, run }) {
         {w && !w.result ? (
           <div>
             {(() => {
-              const r = RIVAL_CLANS.find((x) => x.id === w.rival)
+              const r = w.real ? { name: `${w.rivalName} [${w.rivalTag}]`, color: '#F472B6' } : RIVAL_CLANS.find((x) => x.id === w.rival)
               const us = Math.round(w.us), them = Math.round(w.them)
               return (
                 <>
@@ -340,13 +341,15 @@ function TurfWar({ s, d, run }) {
         ) : w?.result ? (
           <div className="flex flex-wrap items-center gap-3">
             <div className={`text-xl font-extrabold ${w.result.won ? 'text-gold' : 'text-red-400'}`}>{w.result.won ? 'VICTORY' : 'DEFEAT'}</div>
-            <div className="text-[13px] text-stone-300">{Math.round(w.us)} – {Math.round(w.them)} vs {RIVAL_CLANS.find((x) => x.id === w.rival).name}{w.result.won && ` · +${money(w.result.spoils)} treasury, +${WAR.winGold} Gold, +${WAR.winXp} family XP`}</div>
+            <div className="text-[13px] text-stone-300">{Math.round(w.us)} – {Math.round(w.them)} vs {w.real ? w.rivalName : RIVAL_CLANS.find((x) => x.id === w.rival).name}{w.result.won && ` · +${money(w.result.spoils)} treasury, +${WAR.winGold} Gold, +${WAR.winXp} family XP`}</div>
             <button className="classic-btn-dark ml-auto" onClick={() => run(claimWar)}>Close</button>
           </div>
         ) : (
           <>
             {playerRank(s) < WAR_MIN_RANK && <div className="mb-2 flex items-center gap-2 rounded border border-line bg-black/30 p-2 text-[12px] text-stone-300"><Lock size={13} /> You need faction Rank {WAR_MIN_RANK + 1} ({getFaction(s.factionId).ranks[WAR_MIN_RANK].title}, Level 21) to lead a family war.</div>}
             <p className="mb-2 text-[12px] text-stone-400">Declare a 24-hour war on a rival family. It costs {money(warCost)} from the treasury. Win for spoils, Gold and family XP.</p>
+            {ONLINE && <RealFamilies s={s} warCost={warCost} />}
+            {ONLINE && <div className="k mt-3 mb-1">AI families</div>}
             {RIVAL_CLANS.map((r) => {
               const truce = (c.truce[r.id] || 0) > now
               return (
@@ -365,8 +368,9 @@ function TurfWar({ s, d, run }) {
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {DISTRICTS.map((dist) => {
             const t = c.turf[dist.id]
-            const r = RIVAL_CLANS.find((x) => x.id === t.rival)
-            const held = t.control >= TURF.holdAt
+            const ai = RIVAL_CLANS.find((x) => x.id === t.rival)
+            const r = ONLINE && t.holder && t.holder !== 'you' ? { name: t.holder, tag: t.holder.match(/\[(.*)\]/)?.[1] || '?', color: '#F472B6' } : ai
+            const held = ONLINE ? t.holder === 'you' : t.control >= TURF.holdAt
             const locked = s.level < dist.level
             const img = ASSET_MAP.districts[dist.id]
             return (
@@ -379,20 +383,20 @@ function TurfWar({ s, d, run }) {
                 </div>
                 <div className="p-2">
                   <div className="flex h-2.5 overflow-hidden rounded-sm border border-black">
-                    <div className="h-full bg-gold" style={{ width: `${t.control}%` }} />
+                    <div className="h-full bg-gold" style={{ width: `${ONLINE ? (held ? t.strength : 0) : t.control}%` }} />
                     <div className="h-full flex-1" style={{ background: r.color, opacity: 0.6 }} />
                   </div>
-                  <div className="mt-0.5 flex justify-between text-[10px]"><span className="text-gold">{c.tag} {Math.round(t.control)}%</span><span style={{ color: r.color }}>{r.tag}</span></div>
+                  <div className="mt-0.5 flex justify-between text-[10px]"><span className="text-gold">{c.tag} {Math.round(ONLINE ? (held ? t.strength : 0) : t.control)}%</span><span style={{ color: r.color }}>{ONLINE && !held ? `${r.tag} ${Math.round(t.strength ?? 100)}%` : r.tag}</span></div>
                   <div className="mt-1 text-[10px] text-stone-400">{held ? `Held: +${Math.round(TURF.jobCashBonus * 100)}% job cash, +${money(TURF.incomePerLevel * Math.max(1, dist.level))}/hr` : `Controlled by ${r.name}`}</div>
-                  <button className="classic-btn mt-1.5 w-full" disabled={locked || s.energy < TURF.pushEnergy || t.control >= 100} onClick={() => run(pushTurf, dist.id)}>
-                    {locked ? <><Lock size={11} /> Lv {dist.level}</> : t.control >= 100 ? 'Secured' : 'Push turf'}
+                  <button className="classic-btn mt-1.5 w-full" disabled={locked || s.energy < TURF.pushEnergy || (!ONLINE && t.control >= 100) || (ONLINE && held && t.strength >= 100)} onClick={() => run(pushTurf, dist.id)}>
+                    {locked ? <><Lock size={11} /> Lv {dist.level}</> : ONLINE ? (held ? (t.strength >= 100 ? 'Secured' : 'Reinforce') : 'Attack') : t.control >= 100 ? 'Secured' : 'Push turf'}
                   </button>
                 </div>
               </div>
             )
           })}
         </div>
-        <p className="mt-2 text-[11px] text-stone-500">Rival families claw back control every hour. Enforcers in your family hold the line for you.</p>
+        <p className="mt-2 text-[11px] text-stone-500">{ONLINE ? 'One shared map for every Family. Attack a district to knock down its holders; at 0% it is yours. Reinforce your own districts; they recover 8% an hour.' : 'Rival families claw back control every hour. Enforcers in your family hold the line for you.'}</p>
       </Section>
     </div>
   )
@@ -500,5 +504,31 @@ function Upgrades({ s, run }) {
         )
       })}
     </Section>
+  )
+}
+
+function RealFamilies({ s, warCost }) {
+  const [list, setList] = useState(null)
+  useEffect(() => { api('GET', '/api/families').then((r) => r.status === 200 && setList(r.families)) }, [])
+  const c = s.clan
+  const now = Date.now()
+  if (!list) return <p className="text-[12px] text-stone-500">Loading real Families…</p>
+  return (
+    <>
+      <div className="k mb-1">Real players' Families</div>
+      {list.length === 0 && <p className="mb-2 text-[12px] text-stone-500">No other Families yet. Invite your friends!</p>}
+      {list.map((f) => {
+        const truce = (c.truce[`p:${f.account_id}`] || 0) > now
+        return (
+          <div key={f.username} className="row">
+            <Crest crest={f.crest} size={32} />
+            <div className="min-w-0 flex-1"><div className="font-bold text-stone-100">{f.name} <span className="text-[11px] text-gold">[{f.tag}]</span></div>
+              <div className="text-[11px] text-stone-400">Boss {f.boss_name} · Family level {f.level} · {f.members} members{f.atWar ? ' · at war' : ''}</div></div>
+            <button className="classic-btn" style={{ '--accent': '#DC2626' }} disabled={f.atWar || truce || c.treasury < warCost || playerRank(s) < WAR_MIN_RANK}
+              onClick={() => serverAct('/api/family/war', { username: f.username })}>{truce ? `Truce ${fmtLeft(c.truce[`p:${f.account_id}`] - now)}` : <><Swords size={12} /> Declare war</>}</button>
+          </div>
+        )
+      })}
+    </>
   )
 }

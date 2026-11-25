@@ -448,6 +448,7 @@ export function clanTick(s, now, dt) {
   // Turf: enforcers hold ground, rivals push back
   const enf = c.members.filter((m) => m.spec === 'enforcer').reduce((t, m) => t + m.skill, 0) * clanPower(s)
   for (const d of DISTRICTS) {
+    if (s.online) break // online, the shared Family map lives on the server
     const t = c.turf[d.id]
     if (!t || t.control <= 0) continue
     const rival = RIVAL_CLANS.find((r) => r.id === t.rival)
@@ -458,8 +459,9 @@ export function clanTick(s, now, dt) {
   if (w && !w.result) {
     const end = Math.min(now, w.endsAt)
     const wh = Math.max(0, (end - w.lastTick) / H)
-    const rival = RIVAL_CLANS.find((r) => r.id === w.rival)
     w.us += enf * 0.5 * wh
+    if (w.real) { w.lastTick = end; return } // a war against a real Family: the server keeps the other side's score
+    const rival = RIVAL_CLANS.find((r) => r.id === w.rival)
     w.them += rival.power * (3 + clanLevel(c).level * 1.0) * rand(0.6, 1.4) * wh
     w.lastTick = end
     if (now >= w.endsAt) settleWar(s)

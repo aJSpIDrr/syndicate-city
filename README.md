@@ -15,7 +15,7 @@ Then open the URL Vite prints (usually http://localhost:5173). `npm run build` m
 
 ## Online play (server)
 
-`server/` is a small Node server (accounts, sessions, one saved boss per account in Postgres) that runs the same game engine as the browser, so every move is checked on the server. `npm run dev:online` starts it locally (embedded Postgres in `data/`); build the site with `VITE_API_URL=http://localhost:3001` to play against it. `npm run test:server` checks the API. Hosting steps: [docs/DEPLOY.md](docs/DEPLOY.md). With no `VITE_API_URL` the game stays single-player in the browser.
+`server/` is a small Node server (accounts, sessions, one saved boss per account in Postgres) that runs the same game engine as the browser, so every move is checked on the server. `npm run dev:online` starts it locally (embedded Postgres in `data/`); build the site with `VITE_API_URL=http://localhost:3001` to play against it. `npm run test:server` checks the API (accounts, gifts, email log-in, and the shared world: zones, HQ raids, Family wars). The shared world lives in `server/world.mjs` (tables `zones`, `family_wars`, `hq_raids`) and is copied into each save on load. Hosting steps: [docs/DEPLOY.md](docs/DEPLOY.md). With no `VITE_API_URL` the game stays single-player in the browser.
 
 ## Publish on GitHub Pages
 

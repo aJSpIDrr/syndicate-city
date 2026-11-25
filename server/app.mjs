@@ -2,6 +2,7 @@
 // same engine the browser uses, and stores the result. The browser only shows state and sends actions.
 import { randomBytes, scryptSync, timingSafeEqual, createHash } from 'node:crypto'
 import { sendMail } from './mail.mjs'
+import { ensureWorld, syncIntoState, syncWarScore, attackShared, fortifyShared, hqTargets, raidPlayerHq, familyList, declareRealWar } from './world.mjs'
 import * as E from '../src/game/engine.js'
 import { ACTIONS, DEV_ACTIONS, cleanArgs } from '../src/game/actions.js'
 import { FACTIONS } from '../src/data/factions.js'
@@ -39,12 +40,21 @@ export function makeApp(db, { dev = process.env.DEV_TOOLS === '1', origins = (pr
       let s = r.rows[0].state
       s = E.migrate(s)
       s = E.tick(s)
+      await syncIntoState(t, accountId, s)
       const out = await fn(s, t)
       if (out.status) return out
       const next = out.state
+      await syncWarScore(t, accountId, next)
       await t.query('UPDATE players SET state = $2, level = $3, updated_at = now() WHERE account_id = $1', [accountId, strip(next), next.level])
       return { status: 200, body: { state: next } }
     })
+  }
+
+  /** After a shared-world action: bank any war points, then copy the updated world back into the save. */
+  async function refreshed(t, user, s) {
+    await syncWarScore(t, user, s)
+    await syncIntoState(t, user, s)
+    return { state: s }
   }
 
   const routes = {
@@ -130,6 +140,9 @@ export function makeApp(db, { dev = process.env.DEV_TOOLS === '1', origins = (pr
       const args = cleanArgs(body?.args ?? [])
       if (!fn) return { status: 400, body: { error: 'Unknown action.' } }
       if (!args) return { status: 400, body: { error: 'Bad action arguments.' } }
+      // Turf actions use the shared online map instead of the single-player rules
+      const shared = { attackZone: (s, t) => attackShared(t, user, s, 'city', args[0]), pushTurf: (s, t) => attackShared(t, user, s, 'family', args[0]), fortifyZone: (s, t) => fortifyShared(t, user, s, args[0]) }[action]
+      if (shared) return withPlayer(user, async (s, t) => { const r = await shared(s, t); return r.error ? { status: 400, body: { error: r.error } } : refreshed(t, user, s) })
       return withPlayer(user, (s) => ({ state: fn(s, ...args) }))
     },
     'GET /api/players': async ({ user, url }) => {
@@ -162,10 +175,26 @@ export function makeApp(db, { dev = process.env.DEV_TOOLS === '1', origins = (pr
         return { status: 200, body: { state: s1 } }
       })
     },
+    'GET /api/hq/targets': async ({ user }) => {
+      const me = (await db.query('SELECT state FROM players WHERE account_id = $1', [user])).rows[0]
+      if (!me) return { status: 404, body: { error: 'No boss yet.' } }
+      return { status: 200, body: { targets: await hqTargets(db, user, E.migrate(me.state)) } }
+    },
+    'POST /api/hq/raid': async ({ user, body }) => withPlayer(user, async (s, t) => {
+      const r = await raidPlayerHq(t, user, s, body?.username)
+      return r.error ? { status: 400, body: { error: r.error } } : refreshed(t, user, s)
+    }),
+    'GET /api/families': async ({ user }) => ({ status: 200, body: { families: await familyList(db, user) } }),
+    'POST /api/family/war': async ({ user, body }) => withPlayer(user, async (s, t) => {
+      const r = await declareRealWar(t, user, s, body?.username)
+      return r.error ? { status: 400, body: { error: r.error } } : refreshed(t, user, s)
+    }),
     'GET /api/health': async () => ({ status: 200, body: { ok: true, dev } }),
   }
 
+  const ready = ensureWorld(db)
   return async function handle(req, res) {
+    await ready
     const origin = req.headers.origin
     const allow = origins.includes('*') ? '*' : origins.includes(origin) ? origin : null
     if (allow) {
