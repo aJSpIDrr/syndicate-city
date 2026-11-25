@@ -5,6 +5,7 @@ import {
   BOSSES, ACHIEVEMENTS, DAILY_GOLD, ORDER_POOLS, ORDER_COUNT, ORDER_REWARD, ORDER_BONUS, PASSIVE_PERKS, ACTIVE_BOOSTS, perkCost, WORLD, WORLD_ENEMIES,
 } from '../data/content.js'
 import { clanPerks, clanTick, clanEvent, heldDistricts } from './clan.js'
+import { hqPerks, hqTick, ensureHq } from './hq.js'
 import { TURF } from '../data/clan.js'
 
 export const SAVE_KEY = 'syndicate-city-save-v1'
@@ -92,6 +93,7 @@ export function newGame(bossName, factionId) {
     toast: null,
   }
   s.leaderboard = makeLeaderboard()
+  ensureHq(s)
   s.rivals = makeRivals(s)
   s.rivalsRefreshedAt = Date.now()
   const f = getFaction(factionId)
@@ -115,6 +117,7 @@ export function loadGame() {
     s.boosts ??= {}
     s.clan ??= null
     s.orders ??= {}
+    ensureHq(s)
     return s
   } catch {
     return null
@@ -146,6 +149,7 @@ export function perksOf(s) {
   for (const p of PASSIVE_PERKS) { const lv = s.perks?.[p.id] || 0; if (lv) add(p.key, p.per * lv) }
   for (const b of activeBoosts(s)) for (const [k, v] of Object.entries(b.effects)) add(k, v)
   for (const [k, v] of Object.entries(clanPerks(s))) add(k, v)
+  for (const [k, v] of Object.entries(hqPerks(s))) add(k, v)
   return out
 }
 
@@ -235,6 +239,7 @@ export function tick(state, now = Date.now()) {
   worldTick(s, now, dt)
   ensureOrders(s)
   clanTick(s, now, dt)
+  hqTick(s, now, dt)
 
   // Refresh the rival board every 10 minutes.
   if (now - s.rivalsRefreshedAt > 10 * 60 * 1000) { s.rivals = makeRivals(s); s.rivalsRefreshedAt = now }
@@ -833,7 +838,7 @@ export function importSave(code) {
     throw new Error('The backup code is damaged or incomplete.')
   }
   if (!s || s.version !== SAVE_VERSION || !getFaction(s.factionId) || typeof s.level !== 'number') throw new Error('The backup code is not a valid save.')
-  s.achievements ??= {}; s.daily ??= { last: null, streak: 0 }; s.bosses ??= {}; s.revenge ??= []; s.perks ??= {}; s.boosts ??= {}; s.clan ??= null; s.orders ??= {}
+  s.achievements ??= {}; s.daily ??= { last: null, streak: 0 }; s.bosses ??= {}; s.revenge ??= []; s.perks ??= {}; s.boosts ??= {}; s.clan ??= null; s.orders ??= {}; ensureHq(s)
   s.lastTick = Date.now()
   s.toast = { id: Date.now(), text: `Welcome back, ${s.bossName}. Save restored.`, kind: 'level' }
   return s

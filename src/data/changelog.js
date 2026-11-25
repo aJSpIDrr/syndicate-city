@@ -2,6 +2,17 @@
 // players see a "What's New" popup once when the top entry's id changes.
 export const CHANGELOG = [
   {
+    id: '1.16',
+    date: '2026-11-25',
+    title: 'Headquarters & Turf Wars',
+    items: [
+      'New HQ tab: grow your HQ from a Hideout Shack to a Syndicate Castle, build and upgrade 20 rooms (Armory, Vault, Casino, Helipad, Throne Room…) and put gear on display to defend it.',
+      'Your HQ safe fills from income rooms. Rival crews raid it, and you can raid theirs.',
+      'New Turf Wars tab: fight for 13 zones on the city map, open to every boss (not just Families). Each zone pays per hour and gives a bonus while you hold it.',
+      'Fortify your zones, because rivals try to take them back. Hold 6 zones to move on Mafia HQ in the centre.',
+    ],
+  },
+  {
     id: '1.15',
     date: '2026-11-25',
     title: 'New Rank Ladder, 40 New Jobs, Orders',

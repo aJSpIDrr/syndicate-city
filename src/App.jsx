@@ -21,9 +21,11 @@ import VaultTab from './components/tabs/VaultTab'
 import MissionsTab from './components/tabs/MissionsTab'
 import PerksTab from './components/tabs/PerksTab'
 import ClanTab from './components/tabs/ClanTab'
+import HqTab from './components/tabs/HqTab'
+import TurfTab from './components/tabs/TurfTab'
 import { clanBadge } from './game/clan'
 
-const TAB_VIEWS = { family: FamilyTab, jobs: JobsTab, realestate: RealEstateTab, arsenal: ArsenalTab, fight: FightClubTab, vault: VaultTab, missions: MissionsTab, perks: PerksTab, clan: ClanTab }
+const TAB_VIEWS = { family: FamilyTab, jobs: JobsTab, realestate: RealEstateTab, arsenal: ArsenalTab, fight: FightClubTab, vault: VaultTab, missions: MissionsTab, perks: PerksTab, clan: ClanTab, hq: HqTab, turf: TurfTab }
 
 export default function App() {
   const { state: s, derived: d, run, start, reset, restore } = useGame()
