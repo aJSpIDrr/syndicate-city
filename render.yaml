@@ -1,5 +1,24 @@
-# Render Blueprint for the Syndicate City game server (the website itself stays on GitHub Pages).
+# Render Blueprint: the game website (static site) and the game server.
 services:
+  - type: web
+    name: syndicate-city
+    runtime: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false # paste the syndicate-city-api address, e.g. https://syndicate-city-api.onrender.com
+    headers:
+      - path: /sw.js
+        name: Cache-Control
+        value: no-cache
+      - path: /version.json
+        name: Cache-Control
+        value: no-cache
+      - path: /index.html
+        name: Cache-Control
+        value: no-cache
+
   - type: web
     name: syndicate-city-api
     runtime: node
@@ -10,7 +29,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      # Any site may call the API: logins use a bearer token kept by the game page, not cookies.
       - key: CORS_ORIGINS
-        value: https://ajspidrr.github.io
+        value: "*"
       - key: DATABASE_URL
         sync: false # paste the Neon connection string in the Render dashboard

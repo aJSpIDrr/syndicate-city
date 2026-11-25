@@ -1,5 +1,13 @@
 # Putting Syndicate City online
 
+## Website on Render (added later)
+The Blueprint also has a static site called **syndicate-city** (the game website). To create it:
+1. Render dashboard → **Blueprints** → your syndicate-city Blueprint → **Manual Sync** (or **Sync**).
+2. When it asks for **VITE_API_URL**, paste the server address (the same value as the GitHub `API_URL` variable,
+   e.g. `https://syndicate-city-api.onrender.com`, no `/` at the end). Click **Apply**.
+3. When **syndicate-city** shows Deployed, open its address (e.g. `https://syndicate-city.onrender.com`).
+The GitHub Pages copy keeps working too; both talk to the same server, so accounts work on either.
+
 The website stays on GitHub Pages. The game server runs on **Render** (free) and stores everyone's
 bosses in a **Neon** database (free). You already use both for Dark Alliance, so log in with the same accounts.
 
