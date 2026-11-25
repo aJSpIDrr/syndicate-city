@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ONLINE } from '../game/online'
+import { ONLINE, API_URL } from '../game/online'
 import { exportSave } from '../game/engine'
 import { soundEnabled, setSoundEnabled } from '../game/sound'
 import { BUILD } from './UpdateBanner'
@@ -181,7 +181,7 @@ export function SettingsModal({ open, onClose, s, onReset, onRestore, onUpdates,
         <div>Boss: <b>{s.bossName}</b></div>
         <div>Faction: <b style={{ color: f.accent }}>{f.name}</b></div>
         <div>Jobs done: {s.stats.jobs.toLocaleString()} · Lifetime earnings: {money(s.stats.cashEarned)}</div>
-        <div className="text-xs text-stone-500">Progress saves automatically in this browser. Version {BUILD}</div>
+        <div className="text-xs text-stone-500">{ONLINE ? `Online mode · server ${API_URL}` : 'Offline mode: progress saves in this browser.'} Version {BUILD}</div>
         {onUpdates && <button className="mt-1 text-xs font-semibold text-gold hover:underline" onClick={onUpdates}>See the update history</button>}
       </div>
       <label className="mt-4 flex cursor-pointer items-center justify-between rounded-lg border border-line bg-black/20 p-3">
