@@ -8,7 +8,7 @@ const SKILLS = [
   { id: 'attack', label: 'Attack', icon: Swords, gain: '+1 Attack', cost: 1 },
   { id: 'defense', label: 'Defense', icon: Shield, gain: '+1 Defense', cost: 1 },
   { id: 'maxHealth', label: 'Max Health', icon: Heart, gain: '+10 Max Health', cost: 1 },
-  { id: 'maxEnergy', label: 'Max Energy', icon: Zap, gain: '+5 Max Energy', cost: 1 },
+  { id: 'maxEnergy', label: 'Max Energy', icon: Zap, gain: '+2 Max Energy', cost: 1 },
   { id: 'maxStamina', label: 'Max Stamina', icon: Grab, gain: '+1 Max Stamina', cost: 2 },
 ]
 

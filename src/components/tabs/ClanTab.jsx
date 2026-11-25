@@ -282,7 +282,7 @@ function Members({ s, run }) {
             )
           })}
         </div>
-        <p className="mt-2 text-[11px] text-stone-500">Rise in your faction (every 5 levels) to unlock higher positions, more member slots and family wars (Rank {WAR_MIN_RANK + 1}).</p>
+        <p className="mt-2 text-[11px] text-stone-500">Rise in your faction (Rank 2 at Level 10, then every 11, 12, 13… levels) to unlock higher positions, more member slots and family wars (Rank {WAR_MIN_RANK + 1}).</p>
       </Section>
 
       <Section flush title="Recruits"
@@ -345,7 +345,7 @@ function TurfWar({ s, d, run }) {
           </div>
         ) : (
           <>
-            {playerRank(s) < WAR_MIN_RANK && <div className="mb-2 flex items-center gap-2 rounded border border-line bg-black/30 p-2 text-[12px] text-stone-300"><Lock size={13} /> You need faction Rank {WAR_MIN_RANK + 1} ({getFaction(s.factionId).ranks[WAR_MIN_RANK].title}, Level 10) to lead a family war.</div>}
+            {playerRank(s) < WAR_MIN_RANK && <div className="mb-2 flex items-center gap-2 rounded border border-line bg-black/30 p-2 text-[12px] text-stone-300"><Lock size={13} /> You need faction Rank {WAR_MIN_RANK + 1} ({getFaction(s.factionId).ranks[WAR_MIN_RANK].title}, Level 21) to lead a family war.</div>}
             <p className="mb-2 text-[12px] text-stone-400">Declare a 24-hour war on a rival family. It costs {money(warCost)} from the treasury. Win for spoils, Gold and family XP.</p>
             {RIVAL_CLANS.map((r) => {
               const truce = (c.truce[r.id] || 0) > now

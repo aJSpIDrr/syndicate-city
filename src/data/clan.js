@@ -2,7 +2,7 @@
 // turf, wars against rival families, timed heists and daily contracts.
 
 export const CLAN = {
-  foundLevel: 5,
+  foundLevel: 10,
   foundCost: 25000,
   baseSlots: 4, // + 1 per 2 family levels + Barracks
   xpToLevel: [0, 400, 1200, 2800, 5500, 9500, 15500, 24000, 36000, 52000], // index = level - 1 (max level 10)

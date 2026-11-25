@@ -2,6 +2,19 @@
 // players see a "What's New" popup once when the top entry's id changes.
 export const CHANGELOG = [
   {
+    id: '1.15',
+    date: '2026-11-25',
+    title: 'New Rank Ladder, 40 New Jobs, Orders',
+    items: [
+      'Faction ranks now come at Level 10, then every 11, 12, 13… levels (Rank 10 at Level 126).',
+      'A skill point in Max Energy now gives +2 Energy.',
+      '5 new jobs in every district, 64 jobs in total. District bosses still unlock from the first three jobs.',
+      'Missions are now Daily, Weekly and Monthly Orders, with a bonus for finishing every order in a period.',
+      'Achievements now have ranks: Workhorse I is 100 jobs for 10 Gold, Workhorse II is 250 jobs for 25 Gold, and so on.',
+      'Founding a Family now needs Level 10 (faction Rank 2).',
+    ],
+  },
+  {
     id: '1.14',
     date: '2026-11-21',
     title: 'Family Ranks',

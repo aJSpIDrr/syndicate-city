@@ -58,11 +58,6 @@ export default function JobsTab({ s, d, run }) {
             const reqs = [job.req.family && `Crew Size ${job.req.family}+`, ...Object.entries(job.req.items || {}).map(([id, q]) => `${q}x ${getItem(id).name}`)].filter(Boolean)
             return (
               <div key={job.id} className="row flex-wrap sm:flex-nowrap">
-                <div className="relative hidden h-14 w-24 shrink-0 overflow-hidden rounded border border-black sm:block">
-                  {banner ? <img src={banner} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                    : ASSET_MAP.districts[job.district] ? <img src={ASSET_MAP.districts[job.district]} alt="" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: ['0% 60%', '50% 60%', '100% 60%'][ji % 3] }} />
-                    : <DistrictScene id={job.district} align={['xMinYMid', 'xMidYMid', 'xMaxYMid'][ji % 3]} />}
-                </div>
                 <div className="min-w-0 flex-1 basis-full sm:basis-auto">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-stone-100">{job.name}</span>
@@ -137,7 +132,7 @@ function BossRow({ s, d, run, districtId }) {
             <div className="text-[11px] text-stone-400">Lv {b.level} · Crew {st.family} · Odds <b style={{ color: odds[1] }}>{odds[0]}</b> · costs <span className="text-blue-300">{b.energy} Energy</span> per hit</div>
           </>
         ) : (
-          <div className="text-[12px] text-stone-500">Earn Bronze mastery on every job in this district to call him out.</div>
+          <div className="text-[12px] text-stone-500">Earn Bronze mastery on the first three jobs in this district to call him out.</div>
         )}
       </div>
       <div className="flex shrink-0 items-center gap-2">

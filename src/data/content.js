@@ -189,23 +189,52 @@ export const ACHIEVEMENTS = [
   ach('m_star', 'Know the Streets', 'Earn a Bronze mastery star.', 1, stars, { gold: 3, cash: 800 }, true),
   ach('m_forge', 'Forged in Fire', 'Upgrade your signature weapon.', 2, (s) => s.sigTier, { gold: 5 }, true),
   ach('m_boss', 'Bring Me His Head', 'Defeat a district boss.', 1, bossCount, { gold: 10, cash: 5000 }, true),
-  ach('jobs100', 'Workhorse', 'Complete 100 jobs.', 100, (s) => s.stats.jobs, { gold: 10 }),
-  ach('jobs1000', 'Career Criminal', 'Complete 1,000 jobs.', 1000, (s) => s.stats.jobs, { gold: 30 }),
-  ach('lvl10', 'Rising Name', 'Reach Level 10.', 10, (s) => s.level, { gold: 10 }),
-  ach('lvl25', 'Feared', 'Reach Level 25.', 25, (s) => s.level, { gold: 20 }),
-  ach('lvl50', 'Legend of the Underworld', 'Reach Level 50.', 50, (s) => s.level, { gold: 40 }),
-  ach('fights100', 'Brawler', 'Win 100 fights.', 100, (s) => s.stats.fightsWon, { gold: 15 }),
-  ach('fights1000', 'Untouchable', 'Win 1,000 fights.', 1000, (s) => s.stats.fightsWon, { gold: 40 }),
-  ach('fam50', 'Small Army', 'Grow your crew to 50.', 50, (s) => s.family, { gold: 20 }),
-  ach('fam200', 'Empire of Men', 'Grow your crew to 200.', 200, (s) => s.family, { gold: 40 }),
-  ach('props25', 'Landlord', 'Own 25 properties.', 25, propCount, { gold: 15 }),
-  ach('props100', 'Real Estate Mogul', 'Own 100 properties.', 100, propCount, { gold: 35 }),
-  ach('bank1m', 'Offshore Account', 'Have $1,000,000 in the Bank.', 1000000, (s) => s.bank, { gold: 25 }),
-  ach('stars24', 'Master of the City', 'Earn 24 mastery stars.', 24, stars, { gold: 25 }),
-  ach('bosses8', 'King of Every District', 'Defeat all 8 district bosses.', 8, bossCount, { gold: 50 }),
-  ach('sets3', 'Collector', 'Vault 3 collection sets.', 3, vaulted, { gold: 15 }),
-  ach('mk10', 'Mythic Arsenal', 'Forge your signature weapon to Mk. X.', 10, (s) => s.sigTier, { gold: 50 }),
+  // Ranked achievements (see TIERED below) are appended after this list.
 ]
+
+// ---- Ranked achievements: each ladder pays more Gold at every rank ----
+// ids reuse the old one-off achievement ids where the target matches, so nobody is paid twice.
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII']
+const LEGACY = { bank1000000: 'bank1m' }
+export const TIERED = [
+  { group: 'jobs', title: 'Workhorse', desc: 'Complete {n} jobs.', value: (s) => s.stats.jobs, tiers: [[100, 10], [250, 25], [500, 50], [1000, 80], [2500, 120], [5000, 200]] },
+  { group: 'lvl', title: 'Rising Name', desc: 'Reach Level {n}.', value: (s) => s.level, tiers: [[10, 10], [25, 20], [50, 40], [75, 60], [100, 90], [126, 150]] },
+  { group: 'fights', title: 'Brawler', desc: 'Win {n} fights.', value: (s) => s.stats.fightsWon, tiers: [[100, 15], [250, 25], [500, 40], [1000, 60], [2500, 100], [5000, 160]] },
+  { group: 'fam', title: 'Small Army', desc: 'Grow your crew to {n}.', value: (s) => s.family, tiers: [[25, 10], [50, 20], [100, 30], [200, 45], [350, 70], [500, 100]] },
+  { group: 'props', title: 'Landlord', desc: 'Own {n} properties.', value: propCount, tiers: [[10, 8], [25, 15], [50, 25], [100, 35], [200, 60]] },
+  { group: 'bank', title: 'Offshore Account', desc: 'Have {n} in the Bank.', money: true, value: (s) => s.bank, tiers: [[100000, 10], [1000000, 25], [10000000, 50], [100000000, 100]] },
+  { group: 'stars', title: 'Master of the City', desc: 'Earn {n} mastery stars.', value: stars, tiers: [[10, 10], [24, 25], [60, 40], [120, 70], [192, 120]] },
+  { group: 'bosses', title: 'King of Every District', desc: 'Defeat {n} district bosses.', value: bossCount, tiers: [[2, 10], [4, 20], [8, 50]] },
+  { group: 'sets', title: 'Collector', desc: 'Vault {n} collection sets.', value: vaulted, tiers: [[1, 5], [3, 15], [10, 30], [25, 60]] },
+  { group: 'mk', title: 'Mythic Arsenal', desc: 'Forge your signature weapon to Mk. {n}.', value: (s) => s.sigTier, tiers: [[4, 10], [7, 25], [10, 50]] },
+  { group: 'world', title: 'Public Enemy Hunter', desc: 'Take down {n} World Enemy leaders.', value: (s) => s.stats.worldKills || 0, tiers: [[1, 10], [10, 40], [25, 70], [50, 120]] },
+  { group: 'earned', title: 'Big Earner', desc: 'Earn {n} in total.', money: true, value: (s) => s.stats.cashEarned, tiers: [[1000000, 10], [10000000, 25], [100000000, 50], [1000000000, 100]] },
+]
+for (const t of TIERED) {
+  t.tiers.forEach(([target, gold], i) => {
+    const id = LEGACY[t.group + target] || (t.group === 'world' && target === 1 ? 'world1' : t.group === 'world' && target === 10 ? 'world10' : t.group + target)
+    const n = t.money ? '$' + target.toLocaleString('en-US') : target.toLocaleString('en-US')
+    ACHIEVEMENTS.push({ id, group: t.group, tier: i + 1, tiers: t.tiers.length, title: `${t.title} ${ROMAN[i]}`, baseTitle: t.title, desc: t.desc.replace('{n}', n), target, value: t.value, reward: { gold } })
+  })
+}
+
+// ---- Orders: daily, weekly and monthly goals (progress = how much a stat grew this period) ----
+const ORD = (id, text, stat, base, perLevel = 0) => ({ id, text, stat, base, perLevel })
+export const ORDER_POOLS = {
+  daily: [ORD('d_jobs', 'Complete {n} jobs', 'jobs', 20, 0.4), ORD('d_fights', 'Win {n} fights', 'fightsWon', 8, 0.1), ORD('d_cash', 'Earn {n}', 'cashEarned', 20000, 6000),
+    ORD('d_world', 'Hit the World Enemy {n} times', 'worldHits', 5), ORD('d_boss', 'Hit a district boss {n} times', 'bossHits', 3), ORD('d_buy', 'Buy {n} Black Market items', 'itemsBought', 3), ORD('d_turf', 'Attack city turf {n} times', 'turfHits', 4)],
+  weekly: [ORD('w_jobs', 'Complete {n} jobs', 'jobs', 150, 3), ORD('w_fights', 'Win {n} fights', 'fightsWon', 50, 0.6), ORD('w_cash', 'Earn {n}', 'cashEarned', 200000, 50000),
+    ORD('w_world', 'Take down {n} World Enemy leaders', 'worldKills', 2), ORD('w_props', 'Buy {n} properties', 'propsBought', 5), ORD('w_raid', 'Raid {n} rival HQs', 'hqRaids', 10)],
+  monthly: [ORD('m_jobs', 'Complete {n} jobs', 'jobs', 600, 12), ORD('m_fights', 'Win {n} fights', 'fightsWon', 200, 2), ORD('m_cash', 'Earn {n}', 'cashEarned', 1000000, 250000),
+    ORD('m_world', 'Take down {n} World Enemy leaders', 'worldKills', 8), ORD('m_zones', 'Capture {n} city zones', 'zonesTaken', 6)],
+}
+export const ORDER_COUNT = { daily: 4, weekly: 4, monthly: 3 }
+export const ORDER_REWARD = {
+  daily: (lvl) => ({ gold: 2, cash: lvl * 400 }),
+  weekly: (lvl) => ({ gold: 8, cash: lvl * 3000 }),
+  monthly: (lvl) => ({ gold: 25, cash: lvl * 12000 }),
+}
+export const ORDER_BONUS = { daily: 5, weekly: 15, monthly: 50 } // extra Gold for finishing every order in the period
 
 // ---- Gold Exclusives (bought with Gold Bars in the Arsenal; not sellable) ----
 // `sprite` is a stand-in drawing until custom art is added via ASSET_MAP.items[id].
@@ -282,7 +311,30 @@ ITEMS.push(
   wtrophy('w_goldreef', 'vehicle', 'Gold Reef Armored Truck', 64, 92, 'armoredsedan', 'Defeat the Gold Reef Mercenaries (World Enemy)'),
   wtrophy('w_fantasmas', 'armor', 'Ghost Cartel Night Suit', 40, 96, 'tacsuit', 'Defeat Los Fantasmas (World Enemy)'),
 )
-ACHIEVEMENTS.push(
-  ach('world1', 'Public Enemy Hunter', 'Take down a World Enemy leader.', 1, (s) => s.stats.worldKills || 0, { gold: 10, cash: 10000 }),
-  ach('world10', 'Scourge of the Underworld', 'Take down 10 World Enemy leaders.', 10, (s) => s.stats.worldKills || 0, { gold: 40 }),
-)
+
+// ---- Extra jobs: 5 more per district, scaled from that district's existing jobs ----
+const EXTRA_JOBS = {
+  docks: ['Pickpocket the Tourists', 'Run Dice in the Alley', 'Steal a Delivery Truck', 'Bust Up a Rival Card Game', 'Hijack a Cargo Container'],
+  midtown: ['Sell Fake Theatre Tickets', 'Squeeze a Jazz Club', 'Lift a Diamond Necklace', 'Fix the Horse Races', 'Shake Down a Union Boss'],
+  eastend: ['Run a Pub Protection Racket', 'Fence Stolen Bicycles', 'Rig the Greyhound Track', 'Raid a Bonded Warehouse', 'Lean on a Market Trader'],
+  downtown: ['Forge Bank Bonds', 'Blackmail a Banker', 'Swipe a Royal Jewel Replica', 'Launder Through an Art Gallery', 'Rob an Armoured Bank Van'],
+  shinjuku: ['Collect Pachinko Debts', 'Smuggle Imported Watches', 'Run an Underground Fight Night', 'Shake Down a Hostess Club', 'Steal Prototype Electronics'],
+  kowloon: ['Run Fan-Tan Tables', 'Smuggle Rare Seafood', 'Forge Designer Handbags', 'Raid a Jade Workshop', 'Seize a Harbour Ferry'],
+  jozi: ['Sell Hot Cellphones', 'Tax a Taxi Rank', 'Ambush a Bullion Courier', 'Work an Illegal Mine Shaft', 'Hijack a Fuel Tanker'],
+  border: ['Bribe a Customs Officer', 'Run Guns Across the River', 'Move a Tunnel Shipment', 'Hijack a Rival Cartel Plane', 'Take a Ranch by Force'],
+}
+const EXTRA_DROPS = { docks: 'cigarettes', midtown: 'alcohol', eastend: 'evidence', downtown: 'jewels', shinjuku: 'plates', kowloon: 'briefcase', jozi: 'bullion', border: 'firearms' }
+for (const [district, names] of Object.entries(EXTRA_JOBS)) {
+  const base = JOBS.filter((j) => j.district === district)
+  const e0 = Math.min(...base.map((j) => j.energy))
+  const top = base.reduce((a, b) => (b.energy > a.energy ? b : a))
+  const cashPerE = top.cashMax / top.energy, xpPerE = top.xp / top.energy
+  const step = [0.9, 1.1, 1.3, 1.55, 1.85]
+  names.forEach((name, i) => {
+    const energy = Math.max(2, Math.round(e0 * step[i]))
+    const cashMax = Math.round(cashPerE * energy * (1.02 + i * 0.03) / 10) * 10
+    JOBS.push(job(`${district}_x${i + 1}`, district, name, energy, Math.round(cashMax * 0.65 / 10) * 10, cashMax, Math.round(xpPerE * energy * (1.02 + i * 0.03)),
+      i >= 3 ? { family: Math.max(2, Math.round(base.reduce((t, j) => Math.max(t, j.req.family || 0), 0) || (i + 1) * 2)) } : {},
+      [{ kind: 'contraband', id: EXTRA_DROPS[district], chance: 0.06 + i * 0.01 }], ['attack', 'defense', 'energy'][i % 3]))
+  })
+}

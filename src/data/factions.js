@@ -1,7 +1,8 @@
 // The 6 Global Factions — rank ladders, perks and avatar evolution (GDD §2).
 // Perk values are fractions (0.05 = +5%). `bankFee` is an absolute laundering fee.
 
-export const RANK_LEVELS = [1, 5, 10, 15, 20, 25, 30, 35, 40, 50]
+// Rank 2 at level 10, then each rank takes one level longer than the last (11, 12, 13 ...)
+export const RANK_LEVELS = [1, 10, 21, 33, 46, 60, 75, 91, 108, 126]
 
 // Perk keys and how they render in the UI.
 export const PERK_LABELS = {

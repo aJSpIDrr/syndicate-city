@@ -2,7 +2,7 @@
 import { FACTIONS, getFaction, rankIndexForLevel, RIVAL_NAMES, weaponName } from '../data/factions.js'
 import {
   ITEMS, getItem, SIG_TIERS, JOBS, DISTRICTS, PROPERTIES, CONTRABAND, COLLECTIONS, MASTERY_REWARD, getContraband,
-  BOSSES, ACHIEVEMENTS, DAILY_GOLD, PASSIVE_PERKS, ACTIVE_BOOSTS, perkCost, WORLD, WORLD_ENEMIES,
+  BOSSES, ACHIEVEMENTS, DAILY_GOLD, ORDER_POOLS, ORDER_COUNT, ORDER_REWARD, ORDER_BONUS, PASSIVE_PERKS, ACTIVE_BOOSTS, perkCost, WORLD, WORLD_ENEMIES,
 } from '../data/content.js'
 import { clanPerks, clanTick, clanEvent, heldDistricts } from './clan.js'
 import { TURF } from '../data/clan.js'
@@ -87,6 +87,7 @@ export function newGame(bossName, factionId) {
     perks: {},
     boosts: {},
     clan: null,
+    orders: {},
     promotion: null,
     toast: null,
   }
@@ -113,6 +114,7 @@ export function loadGame() {
     s.perks ??= {}
     s.boosts ??= {}
     s.clan ??= null
+    s.orders ??= {}
     return s
   } catch {
     return null
@@ -152,7 +154,7 @@ export function derive(s) {
   const g = (k) => pk[k] || 0
   const sig = SIG_TIERS[s.sigTier - 1]
   const maxHealth = Math.floor((BASE.health + s.spent.maxHealth * 10 + s.bonus.maxHealth + g('maxHealthFlat')) * (1 + g('maxHealth')))
-  const maxEnergy = BASE.energy + s.spent.maxEnergy * 5 + s.bonus.maxEnergy + g('maxEnergyFlat')
+  const maxEnergy = BASE.energy + s.spent.maxEnergy * 2 + s.bonus.maxEnergy + g('maxEnergyFlat')
   const maxStamina = BASE.stamina + s.spent.maxStamina + s.bonus.maxStamina + g('maxStaminaFlat')
   const attack = BASE.attack + s.spent.attack + s.bonus.attack
   const defense = BASE.defense + s.spent.defense + s.bonus.defense
@@ -231,6 +233,7 @@ export function tick(state, now = Date.now()) {
   for (let i = 0; i < raids; i++) incomingRaid(s, d)
 
   worldTick(s, now, dt)
+  ensureOrders(s)
   clanTick(s, now, dt)
 
   // Refresh the rival board every 10 minutes.
@@ -401,7 +404,7 @@ export function spendSkill(state, stat) {
   const s = clone(state)
   s.skillPoints -= cost
   s.spent[stat]++
-  if (stat === 'maxEnergy') s.energy += 5
+  if (stat === 'maxEnergy') s.energy += 2
   if (stat === 'maxStamina') s.stamina += 1
   if (stat === 'maxHealth') s.health += 10
   return s
@@ -438,6 +441,7 @@ export function buyProperty(state, id) {
   if (s.cash < price) { toast(s, 'Not enough cash on hand.', 'error'); return s }
   s.cash -= price
   s.properties[id] = (s.properties[id] || 0) + 1
+  bump(s, 'propsBought')
   toast(s, `Bought ${p.name} for ${money(price)}.`, 'win')
   return s
 }
@@ -461,6 +465,7 @@ export function buyItem(state, id, qty = 1) {
   if (s.cash < total) { toast(s, 'Not enough cash on hand.', 'error'); return s }
   s.cash -= total
   s.inventory[id] = (s.inventory[id] || 0) + qty
+  bump(s, 'itemsBought', qty)
   toast(s, `Bought ${qty}x ${item.name} for ${money(total)}.`, 'win')
   return s
 }
@@ -736,7 +741,7 @@ export function achievementProgress(s, a) {
   return { value: Math.min(v, a.target), done: v >= a.target, claimed: !!s.achievements[a.id] }
 }
 export function claimableCount(s) {
-  return ACHIEVEMENTS.filter((a) => !s.achievements[a.id] && a.value(s) >= a.target).length + (dailyStatus(s).ready ? 1 : 0)
+  return ACHIEVEMENTS.filter((a) => !s.achievements[a.id] && a.value(s) >= a.target).length + (dailyStatus(s).ready ? 1 : 0) + ordersClaimable(s)
 }
 export function claimAchievement(state, id) {
   const a = ACHIEVEMENTS.find((x) => x.id === id)
@@ -753,7 +758,7 @@ export function claimAchievement(state, id) {
 
 // ---------- district bosses ----------
 export function bossUnlocked(s, districtId) {
-  return districtUnlocked(s, districtId) && JOBS.filter((j) => j.district === districtId).every((j) => (s.mastery[j.id]?.star || 0) >= 1)
+  return districtUnlocked(s, districtId) && JOBS.filter((j) => j.district === districtId && !j.id.includes('_x')).every((j) => (s.mastery[j.id]?.star || 0) >= 1)
 }
 export function bossState(s, districtId) {
   return s.bosses[districtId] || { hp: 100, defeated: false }
@@ -802,6 +807,7 @@ export function attackBoss(state, districtId) {
     toast(s, msg, ratio >= 0.8 ? 'win' : 'error')
   }
   s.bosses[districtId] = bs
+  bump(s, 'bossHits')
   clanEvent(s, 'boss')
   gainXp(s, xp)
   return s
@@ -827,7 +833,7 @@ export function importSave(code) {
     throw new Error('The backup code is damaged or incomplete.')
   }
   if (!s || s.version !== SAVE_VERSION || !getFaction(s.factionId) || typeof s.level !== 'number') throw new Error('The backup code is not a valid save.')
-  s.achievements ??= {}; s.daily ??= { last: null, streak: 0 }; s.bosses ??= {}; s.revenge ??= []; s.perks ??= {}; s.boosts ??= {}; s.clan ??= null
+  s.achievements ??= {}; s.daily ??= { last: null, streak: 0 }; s.bosses ??= {}; s.revenge ??= []; s.perks ??= {}; s.boosts ??= {}; s.clan ??= null; s.orders ??= {}
   s.lastTick = Date.now()
   s.toast = { id: Date.now(), text: `Welcome back, ${s.bossName}. Save restored.`, kind: 'level' }
   return s
@@ -958,6 +964,7 @@ export function attackWorld(state) {
   const target = worldTarget(w)
   target.unit.hp = Math.max(0, target.unit.hp - dmg)
   w.damage += dmg
+  bump(s, 'worldHits')
   clanEvent(s, 'world')
   s.health = Math.max(0, s.health - taken)
   let xp = 4 + Math.floor(s.level / 2)
@@ -989,5 +996,76 @@ export function attackWorld(state) {
     toast(s, msg, 'win')
   }
   gainXp(s, xp)
+  return s
+}
+
+// ---------- Orders: daily / weekly / monthly ----------
+export function bump(s, key, n = 1) { s.stats[key] = (s.stats[key] || 0) + n }
+const pad = (n) => String(n).padStart(2, '0')
+export function periodKey(kind, t = Date.now()) {
+  const d = new Date(t)
+  if (kind === 'daily') return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  if (kind === 'monthly') return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`
+  const day = (d.getDay() + 6) % 7 // Monday = 0
+  const mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() - day)
+  return `W${mon.getFullYear()}-${pad(mon.getMonth() + 1)}-${pad(mon.getDate())}`
+}
+export function periodEnds(kind, t = Date.now()) {
+  const d = new Date(t)
+  if (kind === 'daily') return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime()
+  if (kind === 'monthly') return new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime()
+  const day = (d.getDay() + 6) % 7
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() - day + 7).getTime()
+}
+function ensureOrders(s) {
+  s.orders ??= {}
+  for (const kind of Object.keys(ORDER_POOLS)) {
+    const key = periodKey(kind)
+    if (s.orders[kind]?.key === key) continue
+    const pool = [...ORDER_POOLS[kind]]
+    const list = []
+    while (list.length < ORDER_COUNT[kind] && pool.length) {
+      const o = pool.splice(Math.floor(Math.random() * pool.length), 1)[0]
+      const target = Math.max(1, Math.round(o.base + o.perLevel * s.level))
+      list.push({ id: o.id, target, start: s.stats[o.stat] || 0, claimed: false })
+    }
+    s.orders[kind] = { key, list, bonus: false }
+  }
+}
+export function orderProgress(s, kind, o) {
+  const def = ORDER_POOLS[kind].find((x) => x.id === o.id)
+  return Math.min(o.target, Math.max(0, (s.stats[def.stat] || 0) - o.start))
+}
+export function ordersView(state) {
+  const s = clone(state)
+  ensureOrders(s)
+  return s.orders
+}
+function ordersClaimable(s) {
+  let n = 0
+  for (const kind of Object.keys(ORDER_POOLS)) {
+    const o = s.orders?.[kind]
+    if (!o || o.key !== periodKey(kind)) continue
+    n += o.list.filter((x) => !x.claimed && orderProgress(s, kind, x) >= x.target).length
+  }
+  return n
+}
+export function ordersTick(s) { ensureOrders(s) }
+export function claimOrder(state, kind, id) {
+  const s = clone(state)
+  ensureOrders(s)
+  const o = s.orders[kind].list.find((x) => x.id === id)
+  if (!o || o.claimed || orderProgress(s, kind, o) < o.target) return state
+  o.claimed = true
+  const r = ORDER_REWARD[kind](s.level)
+  s.gold += r.gold
+  s.cash += r.cash
+  let msg = `${kind[0].toUpperCase() + kind.slice(1)} order done: +${r.gold} Gold, +${money(r.cash)}.`
+  if (!s.orders[kind].bonus && s.orders[kind].list.every((x) => x.claimed)) {
+    s.orders[kind].bonus = true
+    s.gold += ORDER_BONUS[kind]
+    msg += ` All ${kind} orders done: +${ORDER_BONUS[kind]} bonus Gold!`
+  }
+  toast(s, msg, 'level')
   return s
 }
