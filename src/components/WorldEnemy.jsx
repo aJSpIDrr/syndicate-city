@@ -3,6 +3,7 @@ import { getFaction } from '../data/factions'
 import { DISTRICTS, WORLD, getItem } from '../data/content'
 import { attackWorld, worldTemplate, worldTarget, worldTotals, worldTurf, fmt, HOSPITAL_THRESHOLD } from '../game/engine'
 import Avatar from './Avatar'
+import { ASSET_MAP } from '../assetMap'
 import { fmtLeft } from './tabs/PerksTab'
 
 function HpBar({ hp, max, height = 6, color = '#DC2626' }) {
@@ -86,7 +87,7 @@ export default function WorldEnemy({ s, run }) {
 
         {/* Leader */}
         <div className={`mt-3 flex items-center gap-3 rounded border p-2 ${target.kind === 'leader' ? 'border-red-500 bg-red-950/40' : 'border-[#2A2E35] bg-black/30'}`}>
-          <Avatar factionId={w.faction} rank={9} size={72} />
+          {ASSET_MAP.worldLeaders?.[w.enemyId] ? <img src={ASSET_MAP.worldLeaders[w.enemyId]} alt="" className="h-[72px] w-[72px] shrink-0 rounded border-2 border-red-800 object-cover" /> : <Avatar factionId={w.faction} rank={9} size={72} />}
           <div className="min-w-0 flex-1">
             <div className="k text-red-400">Leader</div>
             <div className="font-display text-lg font-bold text-stone-100">{w.leader.name}</div>

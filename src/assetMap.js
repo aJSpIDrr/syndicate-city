@@ -45,6 +45,22 @@ for (const f of ['firm', 'yakuza', 'triad', 'syndicate', 'sinaloa']) {
 }
 for (const d of ['eastend', 'downtown', 'shinjuku', 'kowloon', 'jozi', 'border']) ASSET_MAP.districts[d] = `./art/scenes/${d}.jpg`
 
+// Item, contraband, place and character art (public/art/items, places, people)
+const ITEM_ART = ['bat', 'bat_spiked', 'switchblade', 'revolver', 'shotgun', 'pistol45', 'grenade', 'sniper', 'trench', 'leather', 'kevlar', 'gasmask', 'tacsuit',
+  'modelt', 'pickup', 'motorcycle', 'musclecar', 'armoredsedan', 'hearse', 'speedboat', 'helicopter',
+  'crossbow', 'uzi', 'ak47', 'm4', 'chainsaw', 'flamethrower', 'lmg', 'militaryjacket', 'helmet', 'policevest', 'riothelmet', 'dragonjacket', 'swatvest',
+  'suv', 'policecar', 'ambulance', 'sportscar', 'armoredtruck', 'firetruck', 'tank',
+  'x_tommy', 'x_rpg', 'x_tux', 'x_jugg', 'x_weave', 'x_roadster', 'x_yacht', 'x_jet', 'x_eagle', 't_hook', 't_gunship']
+for (const id of ITEM_ART) ASSET_MAP.items[id] = `./art/items/${id}.jpg`
+for (const id of ['cigarettes', 'alcohol', 'briefcase', 'plates', 'bullion', 'firearms', 'jewels']) ASSET_MAP.contraband[id] = `./art/items/c_${id}.jpg`
+for (const id of ['newsstand', 'laundromat', 'speakeasy', 'nightclub', 'casino', 'shipping']) ASSET_MAP.properties[id] = `./art/places/p_${id}.jpg`
+for (const id of ['docks', 'midtown', 'eastend', 'downtown', 'shinjuku', 'kowloon', 'jozi', 'border']) {
+  ASSET_MAP.districts[id] = `./art/places/${id}.jpg`
+  ASSET_MAP.bosses[id] = `./art/people/boss_${id}.jpg`
+}
+for (const id of factionIds) ASSET_MAP.mentors[id] = `./art/people/mentor_${id}.jpg`
+ASSET_MAP.worldLeaders = { goldreef: './art/people/world_goldreef.jpg', fantasmas: './art/people/world_fantasmas.jpg' }
+
 export const sigWeaponUrl = (factionId, tier) => ASSET_MAP.signatureWeaponTiers[factionId]?.[tier] || ASSET_MAP.signatureWeapons[factionId] || null
 
 export const avatarUrl = (factionId, rank /* 0-based */) => ASSET_MAP.rankAvatars[factionId]?.[rank + 1] || null

@@ -53,6 +53,30 @@ export const ITEMS = [
   it('speedboat', 'vehicle', 'Speedboat', 'epic', 35, 25, 22000, 60),
   it('helicopter', 'vehicle', 'Attack Helicopter', 'legendary', 55, 50, 65000, 150),
 ]
+// Added with the Arsenal & Market art sheets
+ITEMS.push(
+  it('bat_spiked', 'weapon', 'Spiked Bat', 'common', 3, 1, 180, 0),
+  it('crossbow', 'weapon', 'Crossbow', 'uncommon', 12, 4, 1400, 0),
+  it('uzi', 'weapon', 'Uzi', 'uncommon', 14, 6, 1800, 2),
+  it('ak47', 'weapon', 'AK-47', 'rare', 25, 12, 5500, 10),
+  it('m4', 'weapon', 'M4 Carbine', 'rare', 30, 16, 8000, 15),
+  it('chainsaw', 'weapon', 'Chainsaw', 'epic', 34, 8, 9500, 15),
+  it('flamethrower', 'weapon', 'Flamethrower', 'epic', 40, 10, 14000, 30),
+  it('lmg', 'weapon', 'Light Machine Gun', 'legendary', 52, 22, 30000, 60),
+  it('militaryjacket', 'armor', 'Military Field Jacket', 'uncommon', 4, 12, 2000, 0),
+  it('helmet', 'armor', 'Combat Helmet', 'uncommon', 3, 14, 2600, 5),
+  it('policevest', 'armor', 'Police Vest', 'rare', 4, 22, 5200, 10),
+  it('riothelmet', 'armor', 'Riot Helmet', 'rare', 5, 28, 8000, 15),
+  it('dragonjacket', 'armor', 'Dragon Leather Jacket', 'epic', 14, 30, 12000, 25),
+  it('swatvest', 'armor', 'SWAT Vest', 'epic', 8, 46, 21000, 40),
+  it('suv', 'vehicle', 'Black SUV', 'uncommon', 12, 14, 4500, 12),
+  it('policecar', 'vehicle', 'Police Cruiser', 'rare', 18, 18, 8500, 20),
+  it('ambulance', 'vehicle', 'Ambulance', 'rare', 10, 26, 9000, 20),
+  it('sportscar', 'vehicle', 'Italian Sports Car', 'epic', 30, 16, 16000, 35),
+  it('armoredtruck', 'vehicle', 'Armored Cash Truck', 'epic', 18, 44, 24000, 50),
+  it('firetruck', 'vehicle', 'Fire Truck', 'epic', 24, 40, 26000, 55),
+  it('tank', 'vehicle', 'Battle Tank', 'legendary', 70, 70, 90000, 200),
+)
 export const getItem = (id) => ITEMS.find((i) => i.id === id)
 
 // ---- Contraband & Collections ----

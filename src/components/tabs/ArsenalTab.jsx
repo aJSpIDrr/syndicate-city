@@ -83,7 +83,7 @@ function Forge({ s, d, run }) {
 
 function Shop({ s, d, run }) {
   const [cat, setCat] = useState('weapon')
-  const items = ITEMS.filter((i) => i.category === cat && !i.unique && !i.exclusive)
+  const items = ITEMS.filter((i) => i.category === cat && !i.unique && !i.exclusive).sort((a, b) => a.price - b.price)
   const bonus = cat === 'weapon' ? d.perks.weapon : cat === 'vehicle' ? d.perks.vehicle : 0
   return (
     <Section

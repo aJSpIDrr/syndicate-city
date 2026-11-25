@@ -2,6 +2,16 @@
 // players see a "What's New" popup once when the top entry's id changes.
 export const CHANGELOG = [
   {
+    id: '1.17',
+    date: '2026-11-25',
+    title: 'New Art & 21 New Items',
+    items: [
+      'Painted art for most Black Market items, contraband, all 6 properties and all 8 districts.',
+      'Painted portraits for every faction mentor and every district boss, plus two World Enemy leaders.',
+      '21 new Black Market items: AK-47, M4 Carbine, Uzi, Light Machine Gun, Chainsaw, Flamethrower, Crossbow, SWAT Vest, Police Vest, Combat and Riot Helmets, Black SUV, Police Cruiser, Fire Truck, Ambulance, Armored Cash Truck, Italian Sports Car, Battle Tank and more.',
+    ],
+  },
+  {
     id: '1.16',
     date: '2026-11-25',
     title: 'Headquarters & Turf Wars',
