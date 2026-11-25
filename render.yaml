@@ -1,0 +1,16 @@
+# Render Blueprint for the Syndicate City game server (the website itself stays on GitHub Pages).
+services:
+  - type: web
+    name: syndicate-city-api
+    runtime: node
+    plan: free
+    buildCommand: npm ci --omit=dev
+    startCommand: node server/index.mjs
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CORS_ORIGINS
+        value: https://ajspidrr.github.io
+      - key: DATABASE_URL
+        sync: false # paste the Neon connection string in the Render dashboard

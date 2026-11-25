@@ -6,6 +6,7 @@ import { markRead, collectionReady, claimableCount } from './game/engine'
 import { COLLECTIONS } from './data/content'
 import { ASSET_MAP } from './assetMap'
 import FactionSelect from './components/FactionSelect'
+import Login from './components/Login'
 import UpdateBanner from './components/UpdateBanner'
 import Header from './components/Header'
 import { TABS } from './components/tabs.js'
@@ -28,7 +29,7 @@ import { clanBadge } from './game/clan'
 const TAB_VIEWS = { family: FamilyTab, jobs: JobsTab, realestate: RealEstateTab, arsenal: ArsenalTab, fight: FightClubTab, vault: VaultTab, missions: MissionsTab, perks: PerksTab, clan: ClanTab, hq: HqTab, turf: TurfTab }
 
 export default function App() {
-  const { state: s, derived: d, run, start, reset, restore } = useGame()
+  const { state: s, derived: d, run, start, reset, restore, online, phase, user, auth, logout, retry } = useGame()
   const [tab, setTab] = useState('jobs')
   const [modal, setModal] = useState(null)
   // Update history: remember (per browser) the newest update the player has seen
@@ -41,7 +42,10 @@ export default function App() {
   }, [!!s]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { playForToast(s?.toast) }, [s?.toast?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!s) return <><UpdateBanner /><FactionSelect onStart={(name, id) => { start(name, id); setTab('jobs'); markSeen() }} onRestore={restore} /></>
+  if (online && phase === 'login') return <><UpdateBanner /><Login onAuth={auth} /></>
+  if (online && phase === 'loading') return <div className="flex min-h-full items-center justify-center text-stone-400">Opening the city… (the server may take up to a minute to wake up)</div>
+  if (online && phase.startsWith('error:')) return <div className="flex min-h-full flex-col items-center justify-center gap-3 text-stone-300"><p>{phase.slice(6)}</p><button className="classic-btn" onClick={retry}>Try again</button></div>
+  if (!s) return <><UpdateBanner /><FactionSelect onStart={(name, id) => { start(name, id); setTab('jobs'); markSeen() }} onRestore={online ? null : restore} /></>
 
   const f = getFaction(s.factionId)
   const View = TAB_VIEWS[tab]
@@ -80,7 +84,7 @@ export default function App() {
       <DoctorModal open={modal === 'doctor'} onClose={close} s={s} d={d} run={run} />
       <LogModal open={modal === 'log'} onClose={close} s={s} />
       <UpdatesModal open={modal === 'updates'} onClose={close} />
-      <SettingsModal open={modal === 'settings'} onClose={close} s={s} onUpdates={() => setModal('updates')} onReset={() => { close(); reset() }} onRestore={(code) => { restore(code); close() }} />
+      <SettingsModal open={modal === 'settings'} onClose={close} s={s} onUpdates={() => setModal('updates')} onReset={() => { close(); reset() }} onRestore={(code) => { restore(code); close() }} online={online} user={user} onLogout={() => { close(); logout() }} />
       <Toast toast={s.toast} />
       <UpdateBanner />
     </div>

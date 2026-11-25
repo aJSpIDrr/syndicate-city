@@ -18,7 +18,7 @@ export default function FactionSelect({ onStart, onRestore }) {
         <header className="mb-8 text-center">
           <div className="label mb-2 text-brass">A Global Underworld RPG</div>
           <h1 className="font-display text-4xl font-extrabold tracking-wider sm:text-6xl gold-shine">SYNDICATE CITY</h1>
-          <button className="mt-2 text-xs text-brass underline-offset-2 hover:underline" onClick={() => setShowRestore((v) => !v)}>Have a backup code? Restore your boss</button>
+          {onRestore && <button className="mt-2 text-xs text-brass underline-offset-2 hover:underline" onClick={() => setShowRestore((v) => !v)}>Have a backup code? Restore your boss</button>}
           {showRestore && <div className="mx-auto mt-3 max-w-md text-left"><BackupPanel s={null} onRestore={onRestore} /></div>}
           <p className="mx-auto mt-3 max-w-xl text-stone-400">Choose your syndicate. Rise from street rookie to supreme boss. Every rank changes how you look and how you fight.</p>
         </header>

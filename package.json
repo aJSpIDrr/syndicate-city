@@ -6,10 +6,15 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "sim": "node tools/sim.mjs"
+    "sim": "node tools/sim.mjs",
+    "server": "node server/index.mjs",
+    "dev:online": "DEV_TOOLS=1 node server/index.mjs",
+    "test:server": "node tools/server-test.mjs"
   },
   "dependencies": {
+    "@electric-sql/pglite": "^0.2.17",
     "lucide-react": "^0.460.0",
+    "pg": "^8.13.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

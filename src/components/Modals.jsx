@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ONLINE } from '../game/online'
 import { exportSave } from '../game/engine'
 import { soundEnabled, setSoundEnabled } from '../game/sound'
 import { BUILD } from './UpdateBanner'
@@ -59,14 +60,14 @@ export function StoreModal({ open, onClose, s, run }) {
       </div>
       <p className="mt-4 text-xs text-stone-500">Earn Gold Bars by leveling up (+2) and earning Job Mastery stars (+3).</p>
 
-      <div className="mt-5 rounded-lg border border-dashed border-amber-600/50 bg-amber-950/20 p-3">
+      {!ONLINE && <div className="mt-5 rounded-lg border border-dashed border-amber-600/50 bg-amber-950/20 p-3">
         <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-amber-300"><FlaskConical size={16} /> Dev Test Tools</div>
         <div className="flex flex-wrap gap-2">
           <button className="classic-btn-dark" onClick={() => run(devLevels, 5)}>+5 Levels</button>
           <button className="classic-btn-dark" onClick={() => run(devGold, 50)}>+50 Gold</button>
           <button className="classic-btn-dark" onClick={() => run(devCash, 100000)}>+$100,000</button>
         </div>
-      </div>
+      </div>}
     </Modal>
   )
 }
@@ -170,7 +171,7 @@ export function BackupPanel({ s, onRestore }) {
   )
 }
 
-export function SettingsModal({ open, onClose, s, onReset, onRestore, onUpdates }) {
+export function SettingsModal({ open, onClose, s, onReset, onRestore, onUpdates, online, user, onLogout }) {
   const [sound, setSound] = useState(soundEnabled())
   const [confirm, setConfirm] = useState(false)
   const f = getFaction(s.factionId)
@@ -187,8 +188,13 @@ export function SettingsModal({ open, onClose, s, onReset, onRestore, onUpdates 
         <span className="text-sm font-semibold text-stone-200">Sound effects</span>
         <input type="checkbox" checked={sound} onChange={(e) => { setSound(e.target.checked); setSoundEnabled(e.target.checked) }} className="h-4 w-4 accent-[var(--accent)]" />
       </label>
-      <div className="mt-3"><BackupPanel s={s} onRestore={onRestore} /></div>
-      <div className="mt-5 rounded-lg border border-red-900/60 bg-red-950/20 p-3">
+      {online ? (
+        <div className="mt-3 flex items-center justify-between rounded-lg border border-line bg-black/20 p-3">
+          <span className="text-sm text-stone-300">Logged in as <b className="text-stone-100">{user}</b>. Your boss is saved online.</span>
+          <button className="classic-btn-dark" onClick={onLogout}>Log out</button>
+        </div>
+      ) : <div className="mt-3"><BackupPanel s={s} onRestore={onRestore} /></div>}
+      {!online && <div className="mt-5 rounded-lg border border-red-900/60 bg-red-950/20 p-3">
         <div className="text-sm font-semibold text-red-300">Reset Save</div>
         <p className="mt-1 text-xs text-stone-400">Deletes this boss and starts over at faction selection. This can't be undone.</p>
         {confirm ? (
@@ -199,7 +205,7 @@ export function SettingsModal({ open, onClose, s, onReset, onRestore, onUpdates 
         ) : (
           <button className="classic-btn-dark mt-3 border-red-900 text-red-300" onClick={() => setConfirm(true)}>Reset Save…</button>
         )}
-      </div>
+      </div>}
     </Modal>
   )
 }

@@ -107,21 +107,25 @@ export function loadGame() {
     if (!raw) return null
     const s = JSON.parse(raw)
     if (!s || s.version !== SAVE_VERSION || !s.factionId) return null
-    s.toast = null
-    // Fields added after the first release
-    s.achievements ??= {}
-    s.daily ??= { last: null, streak: 0 }
-    s.bosses ??= {}
-    s.revenge ??= []
-    s.perks ??= {}
-    s.boosts ??= {}
-    s.clan ??= null
-    s.orders ??= {}
-    ensureHq(s)
-    return s
+    return migrate(s)
   } catch {
     return null
   }
+}
+
+/** Fills in fields added after the first release (used for local saves and by the online server). */
+export function migrate(s) {
+  s.toast = null
+  s.achievements ??= {}
+  s.daily ??= { last: null, streak: 0 }
+  s.bosses ??= {}
+  s.revenge ??= []
+  s.perks ??= {}
+  s.boosts ??= {}
+  s.clan ??= null
+  s.orders ??= {}
+  ensureHq(s)
+  return s
 }
 
 export function saveGame(s) {
