@@ -4,6 +4,7 @@ import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
 import * as E from '../src/game/engine.js'
 import { ACTIONS, DEV_ACTIONS, cleanArgs } from '../src/game/actions.js'
 import { FACTIONS } from '../src/data/factions.js'
+import { giftQuote, applyGiftOut, applyGiftIn } from '../src/game/gifts.js'
 
 const NAME_RE = /^[A-Za-z0-9_]{3,20}$/
 const hash = (pw, salt = randomBytes(16).toString('hex')) => `${salt}:${scryptSync(pw, salt, 32).toString('hex')}`
@@ -84,6 +85,36 @@ export function makeApp(db, { dev = process.env.DEV_TOOLS === '1', origins = (pr
       if (!args) return { status: 400, body: { error: 'Bad action arguments.' } }
       return withPlayer(user, (s) => ({ state: fn(s, ...args) }))
     },
+    'GET /api/players': async ({ user, url }) => {
+      const q = String(url.searchParams.get('q') || '').trim().toLowerCase().slice(0, 24)
+      const r = await db.query(
+        `SELECT a.username, p.boss_name, p.faction, p.level FROM players p JOIN accounts a ON a.id = p.account_id
+         WHERE p.account_id <> $1 AND ($2 = '' OR a.username_lower LIKE $3 OR lower(p.boss_name) LIKE $3)
+         ORDER BY p.level DESC LIMIT 20`, [user, q, `%${q.replace(/[%_]/g, '')}%`])
+      return { status: 200, body: { players: r.rows } }
+    },
+    'POST /api/gift': async ({ user, body }) => {
+      const to = String(body?.to || '').toLowerCase()
+      const target = (await db.query('SELECT a.id, a.username FROM accounts a JOIN players p ON p.account_id = a.id WHERE a.username_lower = $1', [to])).rows[0]
+      if (!target) return { status: 404, body: { error: 'No player with that username.' } }
+      if (target.id === user) return { status: 400, body: { error: 'You can\'t send a gift to yourself.' } }
+      return db.tx(async (t) => {
+        // Lock both players in a fixed order so two gifts can't deadlock
+        const ids = [user, target.id].sort((a, b) => a - b)
+        const rows = (await t.query('SELECT account_id, state FROM players WHERE account_id = ANY($1) ORDER BY account_id FOR UPDATE', [ids])).rows
+        const me = rows.find((r) => r.account_id === user), them = rows.find((r) => r.account_id === target.id)
+        const sender = E.tick(E.migrate(me.state)), receiver = E.tick(E.migrate(them.state))
+        const quote = giftQuote(sender, { kind: body?.kind, amount: body?.amount, itemId: body?.itemId, qty: body?.qty })
+        if (quote.error) return { status: 400, body: { error: quote.error } }
+        const fromName = (await t.query('SELECT username FROM accounts WHERE id = $1', [user])).rows[0].username
+        const s1 = applyGiftOut(sender, quote, target.username)
+        const s2 = applyGiftIn(receiver, quote, `${sender.bossName} (${fromName})`)
+        await t.query('UPDATE players SET state = $2, level = $3, updated_at = now() WHERE account_id = $1', [user, strip(s1), s1.level])
+        await t.query('UPDATE players SET state = $2, level = $3, updated_at = now() WHERE account_id = $1', [target.id, strip(s2), s2.level])
+        await t.query('INSERT INTO ledger (account_id, kind, detail) VALUES ($1, $2, $3)', [user, 'gift', { to: target.id, ...quote }])
+        return { status: 200, body: { state: s1 } }
+      })
+    },
     'GET /api/health': async () => ({ status: 200, body: { ok: true, dev } }),
   }
 
@@ -110,7 +141,7 @@ export function makeApp(db, { dev = process.env.DEV_TOOLS === '1', origins = (pr
       const open = ['POST /api/signup', 'POST /api/login', 'GET /api/health', 'POST /api/logout'].includes(`${req.method} ${url.pathname}`)
       const user = open ? null : await auth(req)
       if (!open && !user) return send(401, { error: 'Please log in.' })
-      const out = await route({ req, body, user })
+      const out = await route({ req, body, user, url })
       send(out.status, out.body)
     } catch (e) {
       console.error(e)

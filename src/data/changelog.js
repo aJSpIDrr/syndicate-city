@@ -2,6 +2,15 @@
 // players see a "What's New" popup once when the top entry's id changes.
 export const CHANGELOG = [
   {
+    id: '1.18',
+    date: '2026-11-25',
+    title: 'Online Play & Gifts',
+    items: [
+      'Syndicate City is online: create an account and your boss is saved on the server, ready on any device.',
+      'Send gifts to other players with the gift button at the top. Cash and Gold cost a 5% fee on top; items cost a cash shipping fee. Gifting unlocks at Level 5.',
+    ],
+  },
+  {
     id: '1.17',
     date: '2026-11-25',
     title: 'New Art & 21 New Items',

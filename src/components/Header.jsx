@@ -1,4 +1,4 @@
-import { Banknote, Coins, Zap, Grab, Cross, Star, Landmark, Mail, Settings, Plus, Skull, ScrollText } from 'lucide-react'
+import { Banknote, Coins, Zap, Grab, Cross, Star, Landmark, Mail, Settings, Plus, Skull, ScrollText, Gift } from 'lucide-react'
 import { getFaction } from '../data/factions'
 import { xpForNext, fmt, money, cityRank, HOSPITAL_THRESHOLD, activeBoosts, worldTemplate } from '../game/engine'
 import { DISTRICTS } from '../data/content'
@@ -28,7 +28,7 @@ function Stat({ icon: Icon, color, label, value, max, sub, action }) {
   )
 }
 
-export default function Header({ s, d, tab, setTab, onOpen, badges, newUpdate }) {
+export default function Header({ s, d, tab, setTab, onOpen, badges, newUpdate, online }) {
   const f = getFaction(s.factionId)
   const need = xpForNext(s.level)
   const timer = (m, max) => (s[m] >= max ? 'Full' : `+${m === 'health' ? 2 : 1} in ${fmtTime(d.intervals[m] - s.regen[m])}`)
@@ -47,6 +47,7 @@ export default function Header({ s, d, tab, setTab, onOpen, badges, newUpdate })
                 <Star size={14} fill="#D4AF37" /> #{cityRank(s)}
               </div>
               <HeadBtn label="Bank" onClick={() => onOpen('bank')}><Landmark size={17} /></HeadBtn>
+              {online && <HeadBtn label="Send a Gift" onClick={() => onOpen('gift')}><Gift size={17} /></HeadBtn>}
               <HeadBtn label="What's New" onClick={() => onOpen('updates')} dot={newUpdate}><ScrollText size={17} /></HeadBtn>
               <HeadBtn label="Messages" onClick={() => onOpen('log')} badge={s.unread}><Mail size={17} /></HeadBtn>
               <HeadBtn label="Settings" onClick={() => onOpen('settings')}><Settings size={17} /></HeadBtn>
@@ -64,6 +65,7 @@ export default function Header({ s, d, tab, setTab, onOpen, badges, newUpdate })
         </div>
         <div className="flex items-center gap-1 rounded border border-gold/40 bg-black/50 px-1.5 py-0.5 text-[11px] font-bold text-gold"><Star size={11} fill="#D4AF37" /> #{cityRank(s)}</div>
         <HeadBtn label="Bank" onClick={() => onOpen('bank')}><Landmark size={15} /></HeadBtn>
+        {online && <HeadBtn label="Send a Gift" onClick={() => onOpen('gift')}><Gift size={15} /></HeadBtn>}
         <HeadBtn label="What's New" onClick={() => onOpen('updates')} dot={newUpdate}><ScrollText size={15} /></HeadBtn>
         <HeadBtn label="Messages" onClick={() => onOpen('log')} badge={s.unread}><Mail size={15} /></HeadBtn>
         <HeadBtn label="Settings" onClick={() => onOpen('settings')}><Settings size={15} /></HeadBtn>

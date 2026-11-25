@@ -108,5 +108,6 @@ export function useGame() {
   }, [])
 
   const derived = useMemo(() => (state ? E.derive(state) : null), [state])
-  return { state, derived, run, start, reset, restore, online: ONLINE, phase, user, auth, logout, retry: () => setPhase('loading') }
+  const setServerState = useCallback((st) => dispatch({ type: 'INIT', state: st }), [])
+  return { state, derived, run, start, reset, restore, setServerState, online: ONLINE, phase, user, auth, logout, retry: () => setPhase('loading') }
 }

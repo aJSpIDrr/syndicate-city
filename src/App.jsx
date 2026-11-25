@@ -7,6 +7,7 @@ import { COLLECTIONS } from './data/content'
 import { ASSET_MAP } from './assetMap'
 import FactionSelect from './components/FactionSelect'
 import Login from './components/Login'
+import GiftModal from './components/GiftModal'
 import UpdateBanner from './components/UpdateBanner'
 import Header from './components/Header'
 import { TABS } from './components/tabs.js'
@@ -29,7 +30,7 @@ import { clanBadge } from './game/clan'
 const TAB_VIEWS = { family: FamilyTab, jobs: JobsTab, realestate: RealEstateTab, arsenal: ArsenalTab, fight: FightClubTab, vault: VaultTab, missions: MissionsTab, perks: PerksTab, clan: ClanTab, hq: HqTab, turf: TurfTab }
 
 export default function App() {
-  const { state: s, derived: d, run, start, reset, restore, online, phase, user, auth, logout, retry } = useGame()
+  const { state: s, derived: d, run, start, reset, restore, setServerState, online, phase, user, auth, logout, retry } = useGame()
   const [tab, setTab] = useState('jobs')
   const [modal, setModal] = useState(null)
   // Update history: remember (per browser) the newest update the player has seen
@@ -72,7 +73,7 @@ export default function App() {
         backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center',
       }),
     }}>
-      <Header s={s} d={d} tab={tab} setTab={setTab} onOpen={open} badges={badges} newUpdate={seenUpdate !== LATEST_UPDATE} />
+      <Header s={s} d={d} tab={tab} setTab={setTab} onOpen={open} badges={badges} newUpdate={seenUpdate !== LATEST_UPDATE} online={online} />
       <main className="mx-auto max-w-[1000px] px-2 pt-3 sm:px-3">
         <h1 className="mb-2 font-display text-xl font-bold uppercase tracking-wider text-stone-100">{TABS.find((t) => t.id === tab).label}</h1>
         <View s={s} d={d} run={run} />
@@ -84,6 +85,7 @@ export default function App() {
       <DoctorModal open={modal === 'doctor'} onClose={close} s={s} d={d} run={run} />
       <LogModal open={modal === 'log'} onClose={close} s={s} />
       <UpdatesModal open={modal === 'updates'} onClose={close} />
+      {online && <GiftModal open={modal === 'gift'} onClose={close} s={s} onState={setServerState} />}
       <SettingsModal open={modal === 'settings'} onClose={close} s={s} onUpdates={() => setModal('updates')} onReset={() => { close(); reset() }} onRestore={(code) => { restore(code); close() }} online={online} user={user} onLogout={() => { close(); logout() }} />
       <Toast toast={s.toast} />
       <UpdateBanner />
