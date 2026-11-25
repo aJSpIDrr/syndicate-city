@@ -34,3 +34,7 @@ services:
         value: "*"
       - key: DATABASE_URL
         sync: false # paste the Neon connection string in the Render dashboard
+      - key: RESEND_API_KEY
+        sync: false # from resend.com, for password-reset emails (optional: without it no emails are sent)
+      - key: MAIL_FROM
+        sync: false # e.g. Syndicate City <noreply@yourdomain.com> (a domain verified in Resend)

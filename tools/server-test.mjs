@@ -8,10 +8,10 @@ const call = async (method, path, body, token) => {
   const r = await fetch(base + path, { method, headers: { 'Content-Type': 'application/json', ...(token && { Authorization: `Bearer ${token}` }) }, body: body && JSON.stringify(body) })
   return { status: r.status, ...(await r.json()) }
 }
-console.log('signup', (await call('POST', '/api/signup', { username: 'vito', password: 'secret1' })).username)
-console.log('dup', (await call('POST', '/api/signup', { username: 'Vito', password: 'secret1' })).error)
-console.log('badpw', (await call('POST', '/api/login', { username: 'vito', password: 'nope' })).error)
-const { token } = await call('POST', '/api/login', { username: 'vito', password: 'secret1' })
+console.log('signup', (await call('POST', '/api/signup', { email: 'vito@example.com', username: 'vito', password: 'secret1' })).username)
+console.log('dup', (await call('POST', '/api/signup', { email: 'other@example.com', username: 'Vito', password: 'secret1' })).error)
+console.log('badpw', (await call('POST', '/api/login', { email: 'vito@example.com', password: 'nope' })).error)
+const { token } = await call('POST', '/api/login', { email: 'VITO@example.com', password: 'secret1' })
 console.log('state before boss', (await call('GET', '/api/state', null, token)).status)
 const n = await call('POST', '/api/new', { name: 'Vito', factionId: 'families' }, token)
 console.log('new', n.state.bossName, n.state.cash)

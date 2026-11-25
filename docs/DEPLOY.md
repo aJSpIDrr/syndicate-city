@@ -43,3 +43,17 @@ Until step 4 is done, the live site keeps working as the offline (single-browser
   ("Opening the city…"). A paid Render plan ($7/month) keeps it awake.
 - Bosses made in the offline version stay in that browser; online play starts a fresh boss.
 - Test buttons (+5 Levels, +50 Gold) are hidden online. They only work on a server started with `DEV_TOOLS=1`.
+
+## Password-reset emails (Resend)
+Players log in with email. "Forgot password" emails a reset link, which needs an email service. Until this is set up,
+everything works except that reset emails aren't sent.
+1. Go to https://resend.com and sign up (free: 3,000 emails a month).
+2. **Domains** → **Add Domain** → enter a domain you own (for example the one for Three Legends). Resend shows a few DNS
+   records: add them where you manage that domain, then click **Verify**. (Without your own domain, Resend only delivers
+   to your own sign-up email, which is fine for testing but not for players.)
+3. **API Keys** → **Create API Key** → copy it (starts with `re_`).
+4. Render → **syndicate-city-api** → **Environment** → add:
+   - `RESEND_API_KEY` = the key from step 3
+   - `MAIL_FROM` = `Syndicate City <noreply@YOURDOMAIN>` (use the domain from step 2)
+   Click **Save, rebuild and deploy**.
+5. Test it: on the log-in screen click **Forgot your password?** and enter your own email.

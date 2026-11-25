@@ -10,8 +10,8 @@ const call = async (method, path, body, token) => {
   return { status: r.status, ...(await r.json()) }
 }
 const ok = (cond, msg) => { console.log(`${cond ? 'PASS' : 'FAIL'} ${msg}`); if (!cond) process.exitCode = 1 }
-const a = (await call('POST', '/api/signup', { username: 'alice', password: 'secret1' })).token
-const b = (await call('POST', '/api/signup', { username: 'bob', password: 'secret1' })).token
+const a = (await call('POST', '/api/signup', { email: 'alice@example.com', username: 'alice', password: 'secret1' })).token
+const b = (await call('POST', '/api/signup', { email: 'bob@example.com', username: 'bob', password: 'secret1' })).token
 await call('POST', '/api/new', { name: 'Alice', factionId: 'families' }, a)
 await call('POST', '/api/new', { name: 'Bob', factionId: 'triad' }, b)
 let r = await call('POST', '/api/gift', { to: 'bob', kind: 'cash', amount: 100 }, a)

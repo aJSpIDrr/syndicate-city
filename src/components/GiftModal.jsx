@@ -40,7 +40,7 @@ export default function GiftModal({ open, onClose, s, onState }) {
       {!to ? (
         <>
           <div className="flex items-center gap-2 rounded border border-line bg-black/40 px-2"><Search size={14} className="text-stone-500" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search a player by username or boss name" className="w-full bg-transparent py-2 text-stone-100 outline-none" /></div>
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search a player by public name or boss name" className="w-full bg-transparent py-2 text-stone-100 outline-none" /></div>
           <div className="mt-2 max-h-72 overflow-y-auto">
             {players.length === 0 && <p className="p-2 text-[12px] text-stone-500">No players found.</p>}
             {players.map((p) => (

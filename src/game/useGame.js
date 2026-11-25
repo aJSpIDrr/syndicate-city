@@ -84,13 +84,28 @@ export function useGame() {
     else alert(r.error || 'Could not create your boss.')
   }, [])
 
-  const auth = useCallback(async (mode, username, password) => {
-    const r = await api('POST', mode === 'signup' ? '/api/signup' : '/api/login', { username, password })
-    if (r.status !== 200) return r.error || 'Something went wrong.'
+  const signedIn = (r) => {
     setSession(r.token, r.username)
     setUser(r.username)
-    setPhase('loading')
-    return null
+    setPhase(r.needsEmail ? 'addEmail' : 'loading')
+  }
+  /** mode: 'login' | 'signup' | 'forgot' | 'reset' | 'email'. Returns { error } or { info }. */
+  const auth = useCallback(async (mode, f) => {
+    if (mode === 'forgot') {
+      const r = await api('POST', '/api/forgot', { email: f.email, site: location.origin + location.pathname })
+      return r.status === 200 ? { info: 'If that email has an account, a reset link is on its way. Check your inbox (and spam) and open it within 1 hour.' } : { error: r.error || 'Something went wrong.' }
+    }
+    if (mode === 'email') {
+      const r = await api('POST', '/api/email', { email: f.email })
+      if (r.status !== 200) return { error: r.error || 'Something went wrong.' }
+      setPhase('loading'); return {}
+    }
+    const path = { login: '/api/login', signup: '/api/signup', reset: '/api/reset' }[mode]
+    const r = await api('POST', path, f)
+    if (r.status !== 200) return { error: r.error || 'Something went wrong.' }
+    if (mode === 'reset') history.replaceState(null, '', location.pathname)
+    signedIn(r)
+    return {}
   }, [])
 
   const logout = useCallback(async () => {

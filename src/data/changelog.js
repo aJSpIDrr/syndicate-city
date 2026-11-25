@@ -2,6 +2,16 @@
 // players see a "What's New" popup once when the top entry's id changes.
 export const CHANGELOG = [
   {
+    id: '1.19',
+    date: '2026-11-25',
+    title: 'Log In With Email',
+    items: [
+      'Accounts now use your email to log in. Your email stays private; other players only see your public name.',
+      'Forgot your password? Use the link on the log-in screen to get a reset email.',
+      'Accounts made before this update can still log in with their name once, then add an email.',
+    ],
+  },
+  {
     id: '1.18',
     date: '2026-11-25',
     title: 'Online Play & Gifts',

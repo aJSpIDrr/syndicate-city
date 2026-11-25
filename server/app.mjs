@@ -1,12 +1,16 @@
 // HTTP API for the online game. The server is the source of truth: it loads a player's save, runs the
 // same engine the browser uses, and stores the result. The browser only shows state and sends actions.
-import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
+import { randomBytes, scryptSync, timingSafeEqual, createHash } from 'node:crypto'
+import { sendMail } from './mail.mjs'
 import * as E from '../src/game/engine.js'
 import { ACTIONS, DEV_ACTIONS, cleanArgs } from '../src/game/actions.js'
 import { FACTIONS } from '../src/data/factions.js'
 import { giftQuote, applyGiftOut, applyGiftIn } from '../src/game/gifts.js'
 
 const NAME_RE = /^[A-Za-z0-9_]{3,20}$/
+const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,24}$/
+const sha = (t) => createHash('sha256').update(t).digest('hex')
+const SITE_RE = /^https:\/\/[a-z0-9-]+\.(github\.io|onrender\.com)(\/[A-Za-z0-9_./-]*)?$|^http:\/\/localhost:\d+(\/[A-Za-z0-9_./-]*)?$/
 const hash = (pw, salt = randomBytes(16).toString('hex')) => `${salt}:${scryptSync(pw, salt, 32).toString('hex')}`
 const verify = (pw, stored) => {
   const [salt, h] = stored.split(':')
@@ -46,19 +50,62 @@ export function makeApp(db, { dev = process.env.DEV_TOOLS === '1', origins = (pr
   const routes = {
     'POST /api/signup': async ({ body }) => {
       const { username, password } = body || {}
-      if (!NAME_RE.test(username || '')) return { status: 400, body: { error: 'Username: 3–20 letters, numbers or _.' } }
+      const email = String(body?.email || '').trim()
+      if (!EMAIL_RE.test(email)) return { status: 400, body: { error: 'Enter a valid email address.' } }
+      if (!NAME_RE.test(username || '')) return { status: 400, body: { error: 'Public name: 3–20 letters, numbers or _.' } }
       if (typeof password !== 'string' || password.length < 6 || password.length > 200) return { status: 400, body: { error: 'Password needs at least 6 characters.' } }
-      const exists = await db.query('SELECT 1 FROM accounts WHERE username_lower = $1', [username.toLowerCase()])
-      if (exists.rows.length) return { status: 409, body: { error: 'That username is taken.' } }
-      const r = await db.query('INSERT INTO accounts (username, username_lower, pass_hash) VALUES ($1, $2, $3) RETURNING id', [username, username.toLowerCase(), hash(password)])
-      return { status: 200, body: { token: await session(r.rows[0].id), username } }
+      if ((await db.query('SELECT 1 FROM accounts WHERE lower(email) = lower($1)', [email])).rows.length) return { status: 409, body: { error: 'An account with that email already exists. Log in instead.' } }
+      if ((await db.query('SELECT 1 FROM accounts WHERE username_lower = $1', [username.toLowerCase()])).rows.length) return { status: 409, body: { error: 'That public name is taken.' } }
+      const r = await db.query('INSERT INTO accounts (username, username_lower, pass_hash, email) VALUES ($1, $2, $3, $4) RETURNING id', [username, username.toLowerCase(), hash(password), email])
+      return { status: 200, body: { token: await session(r.rows[0].id), username, needsEmail: false } }
     },
     'POST /api/login': async ({ body }) => {
-      const { username, password } = body || {}
-      const r = await db.query('SELECT id, username, pass_hash FROM accounts WHERE username_lower = $1', [String(username || '').toLowerCase()])
+      const { password } = body || {}
+      const id = String(body?.email || body?.username || '').trim().toLowerCase()
+      const r = await db.query('SELECT id, username, pass_hash, email FROM accounts WHERE lower(email) = $1 OR username_lower = $1 ORDER BY (lower(email) = $1) DESC NULLS LAST LIMIT 1', [id])
       const a = r.rows[0]
-      if (!a || typeof password !== 'string' || !verify(password, a.pass_hash)) return { status: 401, body: { error: 'Wrong username or password.' } }
-      return { status: 200, body: { token: await session(a.id), username: a.username } }
+      if (!a || typeof password !== 'string' || !verify(password, a.pass_hash)) return { status: 401, body: { error: 'Wrong email or password.' } }
+      return { status: 200, body: { token: await session(a.id), username: a.username, needsEmail: !a.email } }
+    },
+    'POST /api/email': async ({ user, body }) => {
+      const email = String(body?.email || '').trim()
+      if (!EMAIL_RE.test(email)) return { status: 400, body: { error: 'Enter a valid email address.' } }
+      const taken = await db.query('SELECT id FROM accounts WHERE lower(email) = lower($1) AND id <> $2', [email, user])
+      if (taken.rows.length) return { status: 409, body: { error: 'That email is already used by another account.' } }
+      await db.query('UPDATE accounts SET email = $2 WHERE id = $1', [user, email])
+      return { status: 200, body: { ok: true } }
+    },
+    'POST /api/forgot': async ({ body }) => {
+      const email = String(body?.email || '').trim()
+      const site = String(body?.site || '')
+      const done = { status: 200, body: { ok: true } } // same answer either way, so nobody can probe which emails exist
+      if (!EMAIL_RE.test(email) || !SITE_RE.test(site)) return done
+      const a = (await db.query('SELECT id, username, email FROM accounts WHERE lower(email) = lower($1)', [email])).rows[0]
+      if (!a) return done
+      const recent = await db.query("SELECT count(*)::int AS n FROM password_resets WHERE account_id = $1 AND created_at > now() - interval '1 hour'", [a.id])
+      if (recent.rows[0].n >= 3) return done
+      const token = randomBytes(32).toString('hex')
+      await db.query("INSERT INTO password_resets (token_hash, account_id, expires_at) VALUES ($1, $2, now() + interval '1 hour')", [sha(token), a.id])
+      const link = `${site.split('?')[0]}?reset=${token}`
+      await sendMail({
+        to: a.email,
+        subject: 'Reset your Syndicate City password',
+        text: `Hi ${a.username},\n\nSomeone asked to reset your Syndicate City password. If it was you, open this link within 1 hour:\n${link}\n\nIf it wasn't you, ignore this email; your password stays the same.`,
+        html: `<p>Hi ${a.username},</p><p>Someone asked to reset your Syndicate City password. If it was you, open this link within 1 hour:</p><p><a href="${link}">Reset my password</a></p><p>If it wasn't you, ignore this email; your password stays the same.</p>`,
+      })
+      return dev ? { status: 200, body: { ok: true, devLink: link } } : done
+    },
+    'POST /api/reset': async ({ body }) => {
+      const { token, password } = body || {}
+      if (!/^[a-f0-9]{64}$/.test(token || '')) return { status: 400, body: { error: 'This reset link is not valid.' } }
+      if (typeof password !== 'string' || password.length < 6 || password.length > 200) return { status: 400, body: { error: 'Password needs at least 6 characters.' } }
+      const r = (await db.query('SELECT account_id FROM password_resets WHERE token_hash = $1 AND NOT used AND expires_at > now()', [sha(token)])).rows[0]
+      if (!r) return { status: 400, body: { error: 'This reset link has expired or was already used. Ask for a new one.' } }
+      await db.query('UPDATE password_resets SET used = true WHERE token_hash = $1', [sha(token)])
+      await db.query('UPDATE accounts SET pass_hash = $2 WHERE id = $1', [r.account_id, hash(password)])
+      await db.query('DELETE FROM sessions WHERE account_id = $1', [r.account_id])
+      const a = (await db.query('SELECT username FROM accounts WHERE id = $1', [r.account_id])).rows[0]
+      return { status: 200, body: { token: await session(r.account_id), username: a.username, needsEmail: false } }
     },
     'POST /api/logout': async ({ req }) => {
       const m = /^Bearer (\w+)$/.exec(req.headers.authorization || '')
@@ -138,7 +185,7 @@ export function makeApp(db, { dev = process.env.DEV_TOOLS === '1', origins = (pr
         for await (const chunk of req) { raw += chunk; if (raw.length > 20000) return send(413, { error: 'Too large.' }) }
         try { body = raw ? JSON.parse(raw) : {} } catch { return send(400, { error: 'Bad JSON.' }) }
       }
-      const open = ['POST /api/signup', 'POST /api/login', 'GET /api/health', 'POST /api/logout'].includes(`${req.method} ${url.pathname}`)
+      const open = ['POST /api/signup', 'POST /api/login', 'GET /api/health', 'POST /api/logout', 'POST /api/forgot', 'POST /api/reset'].includes(`${req.method} ${url.pathname}`)
       const user = open ? null : await auth(req)
       if (!open && !user) return send(401, { error: 'Please log in.' })
       const out = await route({ req, body, user, url })

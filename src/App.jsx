@@ -43,7 +43,7 @@ export default function App() {
   }, [!!s]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { playForToast(s?.toast) }, [s?.toast?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (online && phase === 'login') return <><UpdateBanner /><Login onAuth={auth} /></>
+  if (online && (phase === 'login' || phase === 'addEmail')) return <><UpdateBanner /><Login onAuth={auth} addEmail={phase === 'addEmail'} /></>
   if (online && phase === 'loading') return <div className="flex min-h-full items-center justify-center text-stone-400">Opening the city… (the server may take up to a minute to wake up)</div>
   if (online && phase.startsWith('error:')) return <div className="flex min-h-full flex-col items-center justify-center gap-3 text-stone-300"><p>{phase.slice(6)}</p><button className="classic-btn" onClick={retry}>Try again</button></div>
   if (!s) return <><UpdateBanner /><FactionSelect onStart={(name, id) => { start(name, id); setTab('jobs'); markSeen() }} onRestore={online ? null : restore} /></>
