@@ -57,3 +57,13 @@ everything works except that reset emails aren't sent.
    - `MAIL_FROM` = `Syndicate City <noreply@YOURDOMAIN>` (use the domain from step 2)
    Click **Save, rebuild and deploy**.
 5. Test it: on the log-in screen click **Forgot your password?** and enter your own email.
+
+## Moving the game server to Frankfurt (next to the database)
+The Neon database is in Frankfurt; the first game server (`syndicate-city-api`) is in Oregon, so every database
+trip crossed the Atlantic. `render.yaml` now also has `syndicate-city-eu` in Frankfurt.
+1. Render → **Blueprints** → syndicate-city → **Manual Sync**. For `syndicate-city-eu` fill in DATABASE_URL,
+   RESEND_API_KEY and MAIL_FROM with the same values as `syndicate-city-api` (copy them from its **Environment** page).
+2. When it is **Live**, open its address with `/api/health` on the end and check you see `{"ok":true,...}`.
+3. Point the websites at it: Render static site **syndicate-city** → Environment → `VITE_API_URL`; GitHub repo
+   → Settings → Secrets and variables → Actions → Variables → `API_URL`; then rerun **Deploy to GitHub Pages**.
+4. Then remove `syndicate-city-api` from `render.yaml` and delete it in Render (Settings → Delete Web Service).
