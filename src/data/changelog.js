@@ -2,6 +2,16 @@
 // players see a "What's New" popup once when the top entry's id changes.
 export const CHANGELOG = [
   {
+    id: '1.21',
+    date: '2026-11-26',
+    title: 'Clear a District to Move On',
+    items: [
+      'To unlock the next district, earn a Bronze mastery star on every job in your current district, then beat its district boss.',
+      'The district boss now unlocks once every job in its district (all 8) has Bronze.',
+      'Districts you had already started stay open.',
+    ],
+  },
+  {
     id: '1.20',
     date: '2026-11-25',
     title: 'Real Rivals',

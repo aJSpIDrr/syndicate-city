@@ -89,6 +89,7 @@ export function newGame(bossName, factionId) {
     boosts: {},
     clan: null,
     orders: {},
+    districtsOpen: {},
     promotion: null,
     toast: null,
   }
@@ -124,6 +125,11 @@ export function migrate(s) {
   s.boosts ??= {}
   s.clan ??= null
   s.orders ??= {}
+  if (!s.districtsOpen) { // progression rule added later: keep open any district the player already worked in
+    s.districtsOpen = {}
+    const furthest = Math.max(-1, ...JOBS.filter((j) => s.mastery?.[j.id]).map((j) => DISTRICTS.findIndex((d) => d.id === j.district)))
+    DISTRICTS.forEach((d, i) => { if (i <= furthest) s.districtsOpen[d.id] = true })
+  }
   ensureHq(s)
   return s
 }
@@ -320,14 +326,22 @@ function afterLevel(s, startRank) {
 }
 
 // ---------- actions ----------
-export function districtUnlocked(s, districtId) {
-  const d = DISTRICTS.find((x) => x.id === districtId)
-  return s.level >= d.level
+/** A district opens when you reach its level AND beat the boss of the district before it. */
+export function districtLock(s, districtId) {
+  const i = DISTRICTS.findIndex((x) => x.id === districtId)
+  const d = DISTRICTS[i]
+  const prev = DISTRICTS[i - 1]
+  const bossDone = !prev || s.bosses?.[prev.id]?.defeated || s.districtsOpen?.[districtId]
+  if (!bossDone) return { reason: 'boss', text: `Beat ${BOSSES[prev.id].name.split(',')[0]} in ${prev.name}`, short: 'Boss' }
+  if (s.level < d.level) return { reason: 'level', text: `Unlocks at Level ${d.level}`, short: `Lv ${d.level}` }
+  return null
 }
+export function districtUnlocked(s, districtId) { return !districtLock(s, districtId) }
 
 export function jobBlockers(s, job) {
   const out = []
-  if (!districtUnlocked(s, job.district)) out.push(`Unlocks at Level ${DISTRICTS.find((d) => d.id === job.district).level}`)
+  const lock = districtLock(s, job.district)
+  if (lock) out.push(lock.text)
   if (job.req.family && s.family < job.req.family) out.push(`Crew Size ${job.req.family}+`)
   for (const [id, qty] of Object.entries(job.req.items || {})) {
     if ((s.inventory[id] || 0) < qty) out.push(`${qty}x ${getItem(id).name}`)
@@ -767,7 +781,7 @@ export function claimAchievement(state, id) {
 
 // ---------- district bosses ----------
 export function bossUnlocked(s, districtId) {
-  return districtUnlocked(s, districtId) && JOBS.filter((j) => j.district === districtId && !j.id.includes('_x')).every((j) => (s.mastery[j.id]?.star || 0) >= 1)
+  return districtUnlocked(s, districtId) && JOBS.filter((j) => j.district === districtId).every((j) => (s.mastery[j.id]?.star || 0) >= 1)
 }
 export function bossState(s, districtId) {
   return s.bosses[districtId] || { hp: 100, defeated: false }

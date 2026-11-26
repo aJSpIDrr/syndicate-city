@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Zap, Lock, Star, Skull, Trophy } from 'lucide-react'
 import { DISTRICTS, JOBS, STARS, MASTERY_REWARD, BOSSES, getItem, getContraband } from '../../data/content'
-import { doJob, doJobRepeat, jobBlockers, districtUnlocked, money, bossUnlocked, bossState, bossStats, attackBoss, fmt, HOSPITAL_THRESHOLD } from '../../game/engine'
+import { doJob, doJobRepeat, jobBlockers, districtUnlocked, districtLock, money, bossUnlocked, bossState, bossStats, attackBoss, fmt, HOSPITAL_THRESHOLD } from '../../game/engine'
 import { ItemArt } from '../ui'
 import { ASSET_MAP } from '../../assetMap'
 import { DistrictScene } from '../../art/Scenes'
@@ -32,7 +32,7 @@ export default function JobsTab({ s, d, run }) {
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
               <div className="relative flex h-full flex-col justify-end px-1.5 pb-1">
                 <div className={`text-[11px] font-bold leading-tight ${open ? 'text-white' : 'text-stone-500'}`}>{x.name}</div>
-                <div className="flex items-center gap-1 text-[9px] uppercase text-stone-400">{open ? x.city : <><Lock size={8} /> Lv {x.level}</>}</div>
+                <div className="flex items-center gap-1 text-[9px] uppercase text-stone-400">{open ? x.city : <><Lock size={8} /> {districtLock(s, x.id).short}</>}</div>
               </div>
             </button>
           )
@@ -132,7 +132,7 @@ function BossRow({ s, d, run, districtId }) {
             <div className="text-[11px] text-stone-400">Lv {b.level} · Crew {st.family} · Odds <b style={{ color: odds[1] }}>{odds[0]}</b> · costs <span className="text-blue-300">{b.energy} Energy</span> per hit</div>
           </>
         ) : (
-          <div className="text-[12px] text-stone-500">Earn Bronze mastery on the first three jobs in this district to call him out.</div>
+          <div className="text-[12px] text-stone-500">Earn Bronze mastery on every job in this district to call him out.</div>
         )}
       </div>
       <div className="flex shrink-0 items-center gap-2">

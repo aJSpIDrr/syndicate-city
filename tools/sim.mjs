@@ -27,7 +27,7 @@ function bestJob() {
   return ok.sort((a, b) => score(b) - score(a))[0]
 }
 // Strongly prefer jobs without Bronze yet (unlocks the district boss), then unmastered ones.
-const score = (j) => { const st = s.mastery[j.id]?.star ?? 0; return (j.xp / j.energy) * (st === 0 && !j.id.includes('_x') ? 3 : st < 3 ? 1.15 : 1) }
+const score = (j) => { const st = s.mastery[j.id]?.star ?? 0; return (j.xp / j.energy) * (st === 0 ? 3 : st < 3 ? 1.15 : 1) }
 
 function buyForNextJob() {
   // Next locked job in an unlocked district: buy its missing items if affordable.
@@ -85,19 +85,6 @@ for (let step = 0; step < steps; step++) {
     if (s.skillPoints === before) break
   }
 
-  // Jobs
-  for (let guard = 0; guard < 500; guard++) {
-    const j = bestJob()
-    if (!j || s.energy < j.energy) break
-    const lvl = s.level
-    s = E.doJob(s, j.id)
-    if (s.level > lvl) for (let L = lvl + 1; L <= s.level; L++) levelAt[L] ??= (clock - s.createdAt) / 3600000
-  }
-
-  // Daily reward + achievements
-  s = E.claimDaily(s)
-  for (const a of ACHIEVEMENTS) s = E.claimAchievement(s, a.id)
-
   // District bosses (only when the odds are reasonable)
   for (const id of Object.keys(BOSSES)) {
     for (let guard = 0; guard < 30; guard++) {
@@ -111,6 +98,19 @@ for (let step = 0; step < steps; step++) {
       if (s.level > lvl) for (let L = lvl + 1; L <= s.level; L++) levelAt[L] ??= (clock - s.createdAt) / 3600000
     }
   }
+
+  // Jobs
+  for (let guard = 0; guard < 500; guard++) {
+    const j = bestJob()
+    if (!j || s.energy < j.energy) break
+    const lvl = s.level
+    s = E.doJob(s, j.id)
+    if (s.level > lvl) for (let L = lvl + 1; L <= s.level; L++) levelAt[L] ??= (clock - s.createdAt) / 3600000
+  }
+
+  // Daily reward + achievements
+  s = E.claimDaily(s)
+  for (const a of ACHIEVEMENTS) s = E.claimAchievement(s, a.id)
 
   // World Enemy first (uses stamina + 5 energy per hit)
   for (let guard = 0; guard < 40; guard++) {
