@@ -53,7 +53,7 @@ const ITEM_ART = ['bat', 'bat_spiked', 'switchblade', 'revolver', 'shotgun', 'pi
   'knuckles', 'molotov', 'riotshield', 'limodoor', 'nvg', 'x_machete', 'x_mink', 'x_limo',
   'x_tommy', 'x_rpg', 'x_tux', 'x_jugg', 'x_weave', 'x_roadster', 'x_yacht', 'x_jet', 'x_eagle', 't_hook', 't_gunship']
 for (const id of ITEM_ART) ASSET_MAP.items[id] = `./art/items/${id}.jpg`
-for (const id of ['cigarettes', 'alcohol', 'briefcase', 'plates', 'bullion', 'firearms', 'jewels']) ASSET_MAP.contraband[id] = `./art/items/c_${id}.jpg`
+for (const id of ['cigarettes', 'alcohol', 'briefcase', 'plates', 'bullion', 'firearms', 'jewels', 'evidence']) ASSET_MAP.contraband[id] = `./art/items/c_${id}.jpg`
 for (const id of ['newsstand', 'laundromat', 'speakeasy', 'nightclub', 'casino', 'shipping']) ASSET_MAP.properties[id] = `./art/places/p_${id}.jpg`
 for (const id of ['docks', 'midtown', 'eastend', 'downtown', 'shinjuku', 'kowloon', 'jozi', 'border']) {
   ASSET_MAP.districts[id] = `./art/places/${id}.jpg`

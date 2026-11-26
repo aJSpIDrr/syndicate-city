@@ -10,6 +10,7 @@ export const CHANGELOG = [
       'Their signature weapons have new art for every forge level: the Katana from Mk I to Mk X, and the AK-47 from Mk I to Mk X.',
       'New art for Brass Knuckles, Molotov Cocktail, Riot Shield, Bulletproof Limo Door, Night Vision Goggles and three Gold Exclusives.',
       'All six World Enemy leaders now have painted portraits.',
+      'The Evidence File contraband has painted art.',
     ],
   },
   {
