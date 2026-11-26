@@ -19,27 +19,6 @@ services:
         name: Cache-Control
         value: no-cache
 
-  # Old game server (Oregon). Remove once syndicate-city-eu is live and the website points to it.
-  - type: web
-    name: syndicate-city-api
-    runtime: node
-    plan: free
-    buildCommand: npm ci --omit=dev
-    startCommand: node server/index.mjs
-    healthCheckPath: /api/health
-    envVars:
-      - key: NODE_ENV
-        value: production
-      # Any site may call the API: logins use a bearer token kept by the game page, not cookies.
-      - key: CORS_ORIGINS
-        value: "*"
-      - key: DATABASE_URL
-        sync: false # paste the Neon connection string in the Render dashboard
-      - key: RESEND_API_KEY
-        sync: false # from resend.com, for password-reset emails (optional: without it no emails are sent)
-      - key: MAIL_FROM
-        sync: false # e.g. Syndicate City <noreply@yourdomain.com> (a domain verified in Resend)
-
   # Game server next to the database (Neon is in Frankfurt).
   - type: web
     name: syndicate-city-eu

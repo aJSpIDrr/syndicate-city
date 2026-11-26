@@ -66,4 +66,5 @@ trip crossed the Atlantic. `render.yaml` now also has `syndicate-city-eu` in Fra
 2. When it is **Live**, open its address with `/api/health` on the end and check you see `{"ok":true,...}`.
 3. Point the websites at it: Render static site **syndicate-city** → Environment → `VITE_API_URL`; GitHub repo
    → Settings → Secrets and variables → Actions → Variables → `API_URL`; then rerun **Deploy to GitHub Pages**.
-4. Then remove `syndicate-city-api` from `render.yaml` and delete it in Render (Settings → Delete Web Service).
+4. Done (2026-11-26): `syndicate-city-api` was removed from `render.yaml`; delete it in Render (Settings → Delete Web Service).
+The game server is now **syndicate-city-eu** (https://syndicate-city-eu.onrender.com); use that name wherever this guide says syndicate-city-api.
