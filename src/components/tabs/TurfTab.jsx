@@ -11,7 +11,7 @@ import { ONLINE } from '../../game/online'
 import Avatar from '../Avatar'
 
 // Zone emblems in public/art/turf; zones without a picture show their name instead.
-const NO_EMBLEM = ['mafiahq', 'slums', 'prison']
+const NO_EMBLEM = ['mafiahq']
 const emblem = (id) => (NO_EMBLEM.includes(id) ? null : `./art/turf/${id}.jpg`)
 
 export default function TurfTab({ s, d, run }) {
