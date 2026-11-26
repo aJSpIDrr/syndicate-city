@@ -39,13 +39,16 @@ CREATE TABLE IF NOT EXISTS ledger (
   detail JSONB NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE players ADD COLUMN IF NOT EXISTS rev INT NOT NULL DEFAULT 0;
 `
 
 export async function openDb({ url = process.env.DATABASE_URL, dir, memory = false } = {}) {
   let db
   if (url) {
     const pg = (await import('pg')).default
-    const pool = new pg.Pool({ connectionString: url, ssl: url.includes('localhost') ? false : { rejectUnauthorized: false }, max: 5 })
+    const pool = new pg.Pool({ connectionString: url, ssl: url.includes('localhost') ? false : { rejectUnauthorized: false }, max: 5,
+      // Keep connections open between taps: opening a new secure connection to the database costs several round trips.
+      idleTimeoutMillis: 10 * 60 * 1000, keepAlive: true })
     db = {
       query: (sql, params) => pool.query(sql, params),
       async tx(fn) {

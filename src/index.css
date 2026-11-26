@@ -53,3 +53,8 @@ body { background: #121417; color: #E6E2D6; font-family: Inter, system-ui, sans-
   .k { @apply text-[11px] font-bold uppercase text-stone-500; }
 }
 body { font-size: 13px; }
+
+/* Thin moving bar at the very top while an online tap waits for the server */
+.loading-bar { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60; overflow: hidden; background: rgba(0,0,0,.4); }
+.loading-bar::after { content: ''; position: absolute; top: 0; bottom: 0; width: 35%; background: linear-gradient(90deg, transparent, #D4AF37, transparent); animation: loading-slide 0.9s linear infinite; }
+@keyframes loading-slide { from { left: -35%; } to { left: 100%; } }

@@ -2,7 +2,7 @@
 // same engine the browser uses, and stores the result. The browser only shows state and sends actions.
 import { randomBytes, scryptSync, timingSafeEqual, createHash } from 'node:crypto'
 import { sendMail } from './mail.mjs'
-import { ensureWorld, syncIntoState, syncWarScore, attackShared, fortifyShared, hqTargets, raidPlayerHq, familyList, declareRealWar } from './world.mjs'
+import { ensureWorld, syncIntoState, loadFast, saveFast, applyWorld, warNeedsSettling, syncWarScore, attackShared, fortifyShared, hqTargets, raidPlayerHq, familyList, declareRealWar } from './world.mjs'
 import * as E from '../src/game/engine.js'
 import { ACTIONS, DEV_ACTIONS, cleanArgs } from '../src/game/actions.js'
 import { FACTIONS } from '../src/data/factions.js'
@@ -21,11 +21,21 @@ const verify = (pw, stored) => {
 const strip = (s) => { const { toast: _t, ...rest } = s; return rest }
 
 export function makeApp(db, { dev = process.env.DEV_TOOLS === '1', origins = (process.env.CORS_ORIGINS || '*').split(',') } = {}) {
+  // Log-in tokens seen recently are remembered for a few minutes, so most taps skip one database trip.
+  const tokenCache = new Map() // token -> { id, until }
+  const forgetAccount = (id) => { for (const [k, v] of tokenCache) if (v.id === id) tokenCache.delete(k) }
   async function auth(req) {
     const m = /^Bearer ([a-f0-9]{64})$/.exec(req.headers.authorization || '')
     if (!m) return null
+    const hit = tokenCache.get(m[1])
+    if (hit && hit.until > Date.now()) return hit.id
     const r = await db.query('SELECT account_id FROM sessions WHERE token = $1', [m[1]])
-    return r.rows[0]?.account_id ?? null
+    const id = r.rows[0]?.account_id ?? null
+    if (id) {
+      if (tokenCache.size > 5000) tokenCache.clear()
+      tokenCache.set(m[1], { id, until: Date.now() + 5 * 60 * 1000 })
+    }
+    return id
   }
   async function session(accountId) {
     const token = randomBytes(32).toString('hex')
@@ -45,9 +55,27 @@ export function makeApp(db, { dev = process.env.DEV_TOOLS === '1', origins = (pr
       if (out.status) return out
       const next = out.state
       await syncWarScore(t, accountId, next)
-      await t.query('UPDATE players SET state = $2, level = $3, updated_at = now() WHERE account_id = $1', [accountId, strip(next), next.level])
+      await t.query('UPDATE players SET state = $2, level = $3, rev = rev + 1, updated_at = now() WHERE account_id = $1', [accountId, strip(next), next.level])
       return { status: 200, body: { state: next } }
     })
+  }
+
+  /**
+   * Everyday path (jobs, shop, fights, refreshing the screen): two database round trips instead of ~10.
+   * Loads everything in one query, runs the action, then saves only if the save wasn't changed meanwhile
+   * (a gift or raid landing at the same moment); if it was, it simply tries again.
+   */
+  async function quickPlayer(accountId, fn) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const row = await loadFast(db, accountId)
+      if (!row) return { status: 404, body: { error: 'No boss yet.' } }
+      if (warNeedsSettling(row.war)) break // rare: a war just ended and must be paid out inside a transaction
+      let s = E.tick(E.migrate(row.state))
+      applyWorld(s, accountId, row.zones, row.war)
+      const next = fn(s)
+      if (await saveFast(db, accountId, next, row.rev)) return { status: 200, body: { state: next } }
+    }
+    return withPlayer(accountId, (s) => ({ state: fn(s) }))
   }
 
   /** After a shared-world action: bank any war points, then copy the updated world back into the save. */
@@ -114,15 +142,16 @@ export function makeApp(db, { dev = process.env.DEV_TOOLS === '1', origins = (pr
       await db.query('UPDATE password_resets SET used = true WHERE token_hash = $1', [sha(token)])
       await db.query('UPDATE accounts SET pass_hash = $2 WHERE id = $1', [r.account_id, hash(password)])
       await db.query('DELETE FROM sessions WHERE account_id = $1', [r.account_id])
+      forgetAccount(r.account_id)
       const a = (await db.query('SELECT username FROM accounts WHERE id = $1', [r.account_id])).rows[0]
       return { status: 200, body: { token: await session(r.account_id), username: a.username, needsEmail: false } }
     },
     'POST /api/logout': async ({ req }) => {
       const m = /^Bearer (\w+)$/.exec(req.headers.authorization || '')
-      if (m) await db.query('DELETE FROM sessions WHERE token = $1', [m[1]])
+      if (m) { tokenCache.delete(m[1]); await db.query('DELETE FROM sessions WHERE token = $1', [m[1]]) }
       return { status: 200, body: { ok: true } }
     },
-    'GET /api/state': async ({ user }) => withPlayer(user, (s) => ({ state: s })),
+    'GET /api/state': async ({ user }) => quickPlayer(user, (s) => s),
     'POST /api/new': async ({ user, body }) => {
       const { name, factionId } = body || {}
       if (!FACTIONS.some((f) => f.id === factionId)) return { status: 400, body: { error: 'Pick a faction.' } }
@@ -143,7 +172,7 @@ export function makeApp(db, { dev = process.env.DEV_TOOLS === '1', origins = (pr
       // Turf actions use the shared online map instead of the single-player rules
       const shared = { attackZone: (s, t) => attackShared(t, user, s, 'city', args[0]), pushTurf: (s, t) => attackShared(t, user, s, 'family', args[0]), fortifyZone: (s, t) => fortifyShared(t, user, s, args[0]) }[action]
       if (shared) return withPlayer(user, async (s, t) => { const r = await shared(s, t); return r.error ? { status: 400, body: { error: r.error } } : refreshed(t, user, s) })
-      return withPlayer(user, (s) => ({ state: fn(s, ...args) }))
+      return quickPlayer(user, (s) => fn(s, ...args))
     },
     'GET /api/players': async ({ user, url }) => {
       const q = String(url.searchParams.get('q') || '').trim().toLowerCase().slice(0, 24)
@@ -169,8 +198,8 @@ export function makeApp(db, { dev = process.env.DEV_TOOLS === '1', origins = (pr
         const fromName = (await t.query('SELECT username FROM accounts WHERE id = $1', [user])).rows[0].username
         const s1 = applyGiftOut(sender, quote, target.username)
         const s2 = applyGiftIn(receiver, quote, `${sender.bossName} (${fromName})`)
-        await t.query('UPDATE players SET state = $2, level = $3, updated_at = now() WHERE account_id = $1', [user, strip(s1), s1.level])
-        await t.query('UPDATE players SET state = $2, level = $3, updated_at = now() WHERE account_id = $1', [target.id, strip(s2), s2.level])
+        await t.query('UPDATE players SET state = $2, level = $3, rev = rev + 1, updated_at = now() WHERE account_id = $1', [user, strip(s1), s1.level])
+        await t.query('UPDATE players SET state = $2, level = $3, rev = rev + 1, updated_at = now() WHERE account_id = $1', [target.id, strip(s2), s2.level])
         await t.query('INSERT INTO ledger (account_id, kind, detail) VALUES ($1, $2, $3)', [user, 'gift', { to: target.id, ...quote }])
         return { status: 200, body: { state: s1 } }
       })
@@ -201,6 +230,7 @@ export function makeApp(db, { dev = process.env.DEV_TOOLS === '1', origins = (pr
       res.setHeader('Access-Control-Allow-Origin', allow)
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+      res.setHeader('Access-Control-Max-Age', '86400') // browsers skip the extra "may I?" request for a while
     }
     if (req.method === 'OPTIONS') { res.writeHead(204); return res.end() }
     const url = new URL(req.url, 'http://x')

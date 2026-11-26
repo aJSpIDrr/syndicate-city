@@ -35,22 +35,59 @@ export async function ensureWorld(db) {
 
 const regen = (row) => Math.min(100, row.strength + REGEN_PER_HOUR * (Date.now() - new Date(row.updated_at).getTime()) / H)
 
-async function zoneRows(t, map) {
-  return (await t.query(
-    `SELECT z.*, p.boss_name, p.faction, a.username, p.state->'clan'->>'name' AS family, p.state->'clan'->>'tag' AS tag
-     FROM zones z LEFT JOIN players p ON p.account_id = z.owner LEFT JOIN accounts a ON a.id = z.owner WHERE z.map = $1`, [map])).rows
-}
-
-async function activeWar(t, accountId) {
-  return (await t.query(
-    `SELECT * FROM family_wars WHERE (a = $1 AND NOT settled_a) OR (b = $1 AND NOT settled_b) ORDER BY id DESC LIMIT 1`, [accountId])).rows[0] || null
-}
+const ZONE_SELECT = `SELECT z.*, p.boss_name, p.faction, a.username, p.state->'clan'->>'name' AS family, p.state->'clan'->>'tag' AS tag
+  FROM zones z LEFT JOIN players p ON p.account_id = z.owner LEFT JOIN accounts a ON a.id = z.owner`
+const WAR_SELECT = `SELECT fw.*, o.state->'clan'->>'name' AS oname, o.state->'clan'->>'tag' AS otag
+  FROM family_wars fw LEFT JOIN players o ON o.account_id = CASE WHEN fw.a = $1 THEN fw.b ELSE fw.a END
+  WHERE (fw.a = $1 AND NOT fw.settled_a) OR (fw.b = $1 AND NOT fw.settled_b) ORDER BY fw.id DESC LIMIT 1`
 
 /** Copies the shared world into a player's save (called whenever a save is loaded online). */
 export async function syncIntoState(t, accountId, s) {
+  const zones = (await t.query(ZONE_SELECT)).rows
+  const war = s.clan ? (await t.query(WAR_SELECT, [accountId])).rows[0] || null : null
+  applyWorld(s, accountId, zones, war)
+  if (war && Date.now() >= new Date(war.ends).getTime()) await settleRealWar(t, accountId, s, war)
+  return s
+}
+
+/**
+ * Fast load for the everyday path: the save, its version, the turf maps and any Family war in ONE
+ * database round trip (each round trip to the hosted database is slow, so we keep them few).
+ */
+export async function loadFast(db, accountId) {
+  const r = (await db.query(
+    `SELECT p.state, p.rev,
+       (SELECT coalesce(json_agg(z), '[]'::json) FROM (${ZONE_SELECT}) z) AS zones,
+       (SELECT row_to_json(w) FROM (${WAR_SELECT}) w) AS war
+     FROM players p WHERE p.account_id = $1`, [accountId])).rows[0]
+  return r || null
+}
+/** True when the war has ended and still needs settling (that path writes, so it uses a transaction). */
+export const warNeedsSettling = (war) => !!war && Date.now() >= new Date(war.ends).getTime()
+
+/**
+ * Fast save in ONE round trip: stores the save only if nobody changed it since loadFast (rev check),
+ * and banks any new war points in the same statement. Returns false if the save changed meanwhile.
+ */
+export async function saveFast(db, accountId, s, rev) {
+  const w = s.clan?.war
+  let warId = null, delta = 0
+  if (w?.real && !w.result) {
+    delta = Math.max(0, w.us - (w.synced || 0))
+    if (delta > 0) { warId = w.warId; w.synced = w.us }
+  }
+  const r = await db.query(
+    `WITH p AS (UPDATE players SET state = $2, level = $3, rev = rev + 1, updated_at = now() WHERE account_id = $1 AND rev = $4 RETURNING 1),
+     w AS (UPDATE family_wars SET a_score = a_score + CASE WHEN a = $1 THEN $6::real ELSE 0 END, b_score = b_score + CASE WHEN b = $1 THEN $6::real ELSE 0 END
+           WHERE id = $5::int AND ends > now() AND EXISTS (SELECT 1 FROM p) RETURNING 1)
+     SELECT (SELECT count(*) FROM p)::int AS n`, [accountId, strip(s), s.level, rev, warId, delta])
+  return r.rows[0].n === 1
+}
+
+function applyWorld(s, accountId, zones, w) {
   s.online = true
   ensureHq(s)
-  for (const r of await zoneRows(t, 'city')) {
+  for (const r of zones.filter((z) => z.map === 'city')) {
     const mine = r.owner === accountId
     const cur = s.city.zones[r.zone_id] || {}
     s.city.zones[r.zone_id] = mine
@@ -59,32 +96,28 @@ export async function syncIntoState(t, accountId, s) {
         ? { owner: 'player', boss: r.boss_name, username: r.username, faction: r.faction, garrison: Math.round(regen(r)), fortify: r.fortify }
         : { owner: 'rival', boss: cur.owner === 'rival' ? cur.boss : 'An AI crew', faction: cur.faction || 'families', garrison: Math.round(regen(r)), fortify: 0 }
   }
-  if (s.clan) {
-    for (const r of await zoneRows(t, 'family')) {
-      const mine = r.owner === accountId
-      const st = Math.round(regen(r))
-      s.clan.turf[r.zone_id] = mine
-        ? { control: Math.max(TURF.holdAt, st), strength: st, rival: s.clan.turf[r.zone_id]?.rival || RIVAL_CLANS[0].id, holder: 'you' }
-        : { control: 0, strength: st, rival: s.clan.turf[r.zone_id]?.rival || RIVAL_CLANS[0].id, holder: r.owner ? `${r.family || r.boss_name} [${r.tag || '?'}]` : null }
-    }
-    const w = await activeWar(t, accountId)
-    if (w) {
-      const meA = w.a === accountId
-      const other = meA ? w.b : w.a
-      const o = (await t.query(`SELECT state->'clan'->>'name' AS name, state->'clan'->>'tag' AS tag FROM players WHERE account_id = $1`, [other])).rows[0] || {}
-      const us = meA ? w.a_score : w.b_score, them = meA ? w.b_score : w.a_score
-      const prev = s.clan.war?.real && s.clan.war.warId === w.id ? s.clan.war : null
-      s.clan.war = {
-        real: true, warId: w.id, rival: `p:${other}`, rivalName: o.name || 'A rival Family', rivalTag: o.tag || '?',
-        startedAt: new Date(w.starts).getTime(), endsAt: new Date(w.ends).getTime(), us, them, synced: us, lastTick: prev?.lastTick || Date.now(), result: null,
-      }
-      if (Date.now() >= s.clan.war.endsAt) await settleRealWar(t, accountId, s, w)
-    } else if (s.clan.war?.real && !s.clan.war.result) {
-      s.clan.war = null
-    }
+  if (!s.clan) return
+  for (const r of zones.filter((z) => z.map === 'family')) {
+    const mine = r.owner === accountId
+    const st = Math.round(regen(r))
+    s.clan.turf[r.zone_id] = mine
+      ? { control: Math.max(TURF.holdAt, st), strength: st, rival: s.clan.turf[r.zone_id]?.rival || RIVAL_CLANS[0].id, holder: 'you' }
+      : { control: 0, strength: st, rival: s.clan.turf[r.zone_id]?.rival || RIVAL_CLANS[0].id, holder: r.owner ? `${r.family || r.boss_name} [${r.tag || '?'}]` : null }
   }
-  return s
+  if (w) {
+    const meA = w.a === accountId
+    const other = meA ? w.b : w.a
+    const us = meA ? w.a_score : w.b_score, them = meA ? w.b_score : w.a_score
+    const prev = s.clan.war?.real && s.clan.war.warId === w.id ? s.clan.war : null
+    s.clan.war = {
+      real: true, warId: w.id, rival: `p:${other}`, rivalName: w.oname || 'A rival Family', rivalTag: w.otag || '?',
+      startedAt: new Date(w.starts).getTime(), endsAt: new Date(w.ends).getTime(), us, them, synced: us, lastTick: prev?.lastTick || Date.now(), result: null,
+    }
+  } else if (s.clan.war?.real && !s.clan.war.result) {
+    s.clan.war = null
+  }
 }
+export { applyWorld }
 
 /** After an action, add any war points the player earned to their Family's real war. */
 export async function syncWarScore(t, accountId, s) {
@@ -126,7 +159,7 @@ async function loadOther(t, id) {
   return r ? E.tick(E.migrate(r.state)) : null
 }
 async function saveOther(t, id, s) {
-  await t.query('UPDATE players SET state = $2, level = $3, updated_at = now() WHERE account_id = $1', [id, strip(s), s.level])
+  await t.query('UPDATE players SET state = $2, level = $3, rev = rev + 1, updated_at = now() WHERE account_id = $1', [id, strip(s), s.level])
 }
 
 /** Attack a city zone (map 'city') or push on a Family district (map 'family'). */

@@ -30,7 +30,7 @@ import { clanBadge } from './game/clan'
 const TAB_VIEWS = { family: FamilyTab, jobs: JobsTab, realestate: RealEstateTab, arsenal: ArsenalTab, fight: FightClubTab, vault: VaultTab, missions: MissionsTab, perks: PerksTab, clan: ClanTab, hq: HqTab, turf: TurfTab }
 
 export default function App() {
-  const { state: s, derived: d, run, start, reset, restore, setServerState, online, phase, user, auth, logout, retry } = useGame()
+  const { state: s, derived: d, run, start, reset, restore, setServerState, online, pending, phase, user, auth, logout, retry } = useGame()
   const [tab, setTab] = useState('jobs')
   const [modal, setModal] = useState(null)
   // Update history: remember (per browser) the newest update the player has seen
@@ -73,6 +73,7 @@ export default function App() {
         backgroundSize: 'cover', backgroundAttachment: 'fixed', backgroundPosition: 'center',
       }),
     }}>
+      {pending && <div className="loading-bar" role="status" aria-label="Working" />}
       <Header s={s} d={d} tab={tab} setTab={setTab} onOpen={open} badges={badges} newUpdate={seenUpdate !== LATEST_UPDATE} online={online} />
       <main className="mx-auto max-w-[1000px] px-2 pt-3 sm:px-3">
         <h1 className="mb-2 font-display text-xl font-bold uppercase tracking-wider text-stone-100">{TABS.find((t) => t.id === tab).label}</h1>

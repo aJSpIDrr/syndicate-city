@@ -32,6 +32,7 @@ export function useGame() {
   const [phase, setPhase] = useState(ONLINE ? (getToken() ? 'loading' : 'login') : 'ready')
   const [user, setUser] = useState(getUser())
   const busy = useRef(false)
+  const [pending, setPending] = useState(0) // online taps waiting for the server (shows a loading bar)
   useEffect(() => { setApplier({ state: (st) => dispatch({ type: 'INIT', state: st }), error: (text) => dispatch({ type: 'TOAST', text }) }) }, [])
 
   const load = useCallback(async () => {
@@ -67,7 +68,9 @@ export function useGame() {
     if (!ONLINE) return dispatch({ type: 'RUN', fn, args })
     const action = actionName(fn)
     busy.current = true
+    setPending((n) => n + 1)
     const r = await api('POST', '/api/act', { action, args })
+    setPending((n) => n - 1)
     busy.current = false
     if (r.status === 200) dispatch({ type: 'INIT', state: r.state })
     else if (r.status === 401) { setSession(null); setPhase('login') }
@@ -125,5 +128,5 @@ export function useGame() {
 
   const derived = useMemo(() => (state ? E.derive(state) : null), [state])
   const setServerState = useCallback((st) => dispatch({ type: 'INIT', state: st }), [])
-  return { state, derived, run, start, reset, restore, setServerState, online: ONLINE, phase, user, auth, logout, retry: () => setPhase('loading') }
+  return { state, derived, run, start, reset, restore, setServerState, online: ONLINE, pending: pending > 0, phase, user, auth, logout, retry: () => setPhase('loading') }
 }

@@ -2,6 +2,15 @@
 // players see a "What's New" popup once when the top entry's id changes.
 export const CHANGELOG = [
   {
+    id: '1.23',
+    date: '2026-11-26',
+    title: 'Faster Online Play',
+    items: [
+      'Taps in the online game get an answer much faster: each one now makes far fewer trips to the database.',
+      'A thin gold bar at the top of the screen shows while the server is working on your tap.',
+    ],
+  },
+  {
     id: '1.22',
     date: '2026-11-26',
     title: 'New Faction Art',
