@@ -2,6 +2,16 @@
 // players see a "What's New" popup once when the top entry's id changes.
 export const CHANGELOG = [
   {
+    id: '1.26',
+    date: '2026-11-26',
+    title: 'Weapon Follows Your Rank',
+    items: [
+      'Your signature weapon now upgrades alongside your faction rank: Mk. II unlocks at Rank 2, Mk. III at Rank 3, all the way to Mk. X at Rank 10.',
+      'Each Mk. is much stronger than before, and the ladder now runs all the way to Rank 10 (Mk. X: +960 Attack / +510 Defense).',
+      'If you had already upgraded, your weapon was moved to the matching new Mk. for your rank, and any Gold Bars you spent above that were refunded. Check your messages.',
+    ],
+  },
+  {
     id: '1.25',
     date: '2026-11-26',
     title: 'Trophy Art',

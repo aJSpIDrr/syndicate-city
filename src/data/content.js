@@ -1,3 +1,4 @@
+import { RANK_LEVELS } from './factions.js'
 // Game content tables (GDD §3, §6). Jobs marked `spec: true` come straight from the GDD;
 // the others were added so every district has a short job chain.
 
@@ -11,18 +12,22 @@ export const RARITY = {
 }
 
 // ---- Signature weapon upgrade tiers (Mk. I – Mk. X) ----
+// Each Mk. tier unlocks with the matching faction rank: Mk. N needs Rank N (level from RANK_LEVELS).
+const sig = (t) => ({ ...t, rank: t.tier, level: RANK_LEVELS[t.tier - 1] })
 export const SIG_TIERS = [
-  { tier: 1, prefix: 'Standard Mk. I', gold: 0, level: 1, atk: 25, def: 15, crit: 0, pen: 0, cash: 0 },
-  { tier: 2, prefix: 'Modified Mk. II', gold: 5, level: 5, atk: 45, def: 25, crit: 0.02, pen: 0, cash: 0 },
-  { tier: 3, prefix: 'Tactical Mk. III', gold: 12, level: 10, atk: 75, def: 40, crit: 0.04, pen: 0, cash: 0 },
-  { tier: 4, prefix: 'Custom Engraved Mk. IV', gold: 25, level: 15, atk: 120, def: 65, crit: 0.04, pen: 0.05, cash: 0 },
-  { tier: 5, prefix: 'Gold-Plated Mk. V', gold: 45, level: 20, atk: 180, def: 95, crit: 0.04, pen: 0.08, cash: 0.05 },
-  { tier: 6, prefix: 'Syndicate Mythic Mk. VI', gold: 75, level: 25, atk: 255, def: 135, crit: 0.07, pen: 0.11, cash: 0.06 },
-  { tier: 7, prefix: 'Syndicate Mythic Mk. VII', gold: 105, level: 30, atk: 330, def: 175, crit: 0.10, pen: 0.13, cash: 0.07 },
-  { tier: 8, prefix: 'Syndicate Mythic Mk. VIII', gold: 135, level: 35, atk: 405, def: 215, crit: 0.13, pen: 0.15, cash: 0.08 },
-  { tier: 9, prefix: 'Syndicate Mythic Mk. IX', gold: 165, level: 40, atk: 480, def: 255, crit: 0.16, pen: 0.18, cash: 0.09 },
-  { tier: 10, prefix: 'Syndicate Mythic Mk. X', gold: 195, level: 45, atk: 555, def: 295, crit: 0.20, pen: 0.20, cash: 0.10 },
+  sig({ tier: 1, prefix: 'Standard Mk. I', gold: 0, atk: 35, def: 20, crit: 0, pen: 0, cash: 0 }),
+  sig({ tier: 2, prefix: 'Modified Mk. II', gold: 8, atk: 120, def: 65, crit: 0.04, pen: 0.05, cash: 0 }),
+  sig({ tier: 3, prefix: 'Tactical Mk. III', gold: 20, atk: 255, def: 135, crit: 0.07, pen: 0.11, cash: 0.06 }),
+  sig({ tier: 4, prefix: 'Custom Engraved Mk. IV', gold: 45, atk: 405, def: 215, crit: 0.13, pen: 0.15, cash: 0.08 }),
+  sig({ tier: 5, prefix: 'Gold-Plated Mk. V', gold: 75, atk: 555, def: 295, crit: 0.16, pen: 0.18, cash: 0.09 }),
+  sig({ tier: 6, prefix: 'Syndicate Mythic Mk. VI', gold: 105, atk: 640, def: 340, crit: 0.18, pen: 0.19, cash: 0.10 }),
+  sig({ tier: 7, prefix: 'Syndicate Mythic Mk. VII', gold: 135, atk: 720, def: 385, crit: 0.20, pen: 0.20, cash: 0.11 }),
+  sig({ tier: 8, prefix: 'Syndicate Mythic Mk. VIII', gold: 165, atk: 800, def: 430, crit: 0.21, pen: 0.22, cash: 0.11 }),
+  sig({ tier: 9, prefix: 'Syndicate Mythic Mk. IX', gold: 195, atk: 880, def: 470, crit: 0.23, pen: 0.23, cash: 0.12 }),
+  sig({ tier: 10, prefix: 'Syndicate Mythic Mk. X', gold: 230, atk: 960, def: 510, crit: 0.25, pen: 0.25, cash: 0.13 }),
 ]
+// Before the rank link (save version sigV < 2) the tiers were: [gold, atk] per Mk. I–X, all reachable by Level 45.
+export const OLD_SIG_TIERS = [[0, 25], [5, 45], [12, 75], [25, 120], [45, 180], [75, 255], [105, 330], [135, 405], [165, 480], [195, 555]]
 
 // ---- Black Market Arsenal ----
 const it = (id, category, name, rarity, atk, def, price, upkeep) => ({ id, category, name, rarity, atk, def, price, upkeep })

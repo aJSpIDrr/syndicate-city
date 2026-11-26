@@ -54,7 +54,7 @@ function Forge({ s, d, run }) {
                 <div className="text-sm text-stone-300">Next: <b className="text-gold">{next.prefix}</b> — +{next.atk} Atk / +{next.def} Def
                   {next.crit > cur.crit && `, ${pct(next.crit)} Crit`}{next.pen > cur.pen && `, ${pct(next.pen)} Armor Pen`}{next.cash > cur.cash && `, +${pct(next.cash)} Cash Stolen`}
                 </div>
-                <div className="mt-1 text-xs text-stone-500">Requires Level {next.level} · {next.gold} Gold Bars (you have {s.gold})</div>
+                <div className="mt-1 text-xs text-stone-500">Requires Rank {next.rank}: {f.ranks[next.rank - 1].title} (Level {next.level}) · {next.gold} Gold Bars (you have {s.gold})</div>
                 <button className="classic-btn classic-btn-gold mt-3" disabled={s.gold < next.gold || s.level < next.level} onClick={() => run(upgradeSignature)}>
                   <Hammer size={15} /> Upgrade with Gold ({next.gold} <Coins size={14} />)
                 </button>
@@ -72,7 +72,7 @@ function Forge({ s, d, run }) {
               <SignatureWeapon factionId={s.factionId} tier={t.tier} width={96} />
               <div className="font-bold text-stone-200">Mk. {t.tier}</div>
               <div className="text-stone-400">{t.atk} / {t.def}</div>
-              <div className="text-stone-500">Lv {t.level} · {t.gold}g</div>
+              <div className="truncate text-stone-500" title={f.ranks[t.rank - 1].title}>Rank {t.rank} · Lv {t.level} · {t.gold}g</div>
             </div>
           ))}
         </div>

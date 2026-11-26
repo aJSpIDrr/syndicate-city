@@ -1,7 +1,7 @@
 // Pure game logic. Every action takes a state, returns a new state (never mutates input).
 import { FACTIONS, getFaction, rankIndexForLevel, RIVAL_NAMES, weaponName } from '../data/factions.js'
 import {
-  ITEMS, getItem, SIG_TIERS, JOBS, DISTRICTS, PROPERTIES, CONTRABAND, COLLECTIONS, MASTERY_REWARD, getContraband,
+  ITEMS, getItem, SIG_TIERS, OLD_SIG_TIERS, JOBS, DISTRICTS, PROPERTIES, CONTRABAND, COLLECTIONS, MASTERY_REWARD, getContraband,
   BOSSES, ACHIEVEMENTS, DAILY_GOLD, ORDER_POOLS, ORDER_COUNT, ORDER_REWARD, ORDER_BONUS, PASSIVE_PERKS, ACTIVE_BOOSTS, perkCost, WORLD, WORLD_ENEMIES,
 } from '../data/content.js'
 import { clanPerks, clanTick, clanEvent, heldDistricts } from './clan.js'
@@ -69,6 +69,7 @@ export function newGame(bossName, factionId) {
     regen: { energy: 0, stamina: 0, health: 0 },
     family: 1,
     sigTier: 1,
+    sigV: 2,
     inventory: {},
     contraband: {},
     properties: {},
@@ -131,6 +132,23 @@ export function migrate(s) {
     DISTRICTS.forEach((d, i) => { if (i <= furthest) s.districtsOpen[d.id] = true })
   }
   ensureHq(s)
+  if ((s.sigV || 1) < 2) { // signature weapon tiers now follow faction rank: keep the same power, refund the difference
+    if (s.sigTier > 1) {
+      const old = OLD_SIG_TIERS[s.sigTier - 1]
+      // the weakest new tier that is at least as strong as the old one, as far as the player's rank allows
+      const target = (SIG_TIERS.find((t) => t.atk >= old[1]) || SIG_TIERS[SIG_TIERS.length - 1]).tier
+      const tier = Math.max(1, Math.min(target, rankIndexForLevel(s.level) + 1))
+      const spentOld = OLD_SIG_TIERS.slice(1, s.sigTier).reduce((n, t) => n + t[0], 0)
+      const spentNew = SIG_TIERS.slice(1, tier).reduce((n, t) => n + t.gold, 0)
+      const refund = Math.max(0, spentOld - spentNew)
+      if (tier !== s.sigTier || refund) {
+        s.sigTier = tier
+        s.gold += refund
+        s.log = [{ id: Date.now() + 0.5, t: Date.now(), text: `Signature weapon upgrades now follow your faction rank (Mk. II at Rank 2, Mk. III at Rank 3…), with stronger tiers. Your weapon is now Mk. ${tier}${refund ? ` and ${refund} Gold Bars were refunded` : ''}.`, kind: 'level' }, ...(s.log || [])].slice(0, 60)
+      }
+    }
+    s.sigV = 2
+  }
   return s
 }
 
@@ -509,7 +527,7 @@ export function upgradeSignature(state) {
   const next = SIG_TIERS[state.sigTier]
   if (!next) return state
   const s = clone(state)
-  if (s.level < next.level) { toast(s, `Requires Level ${next.level}.`, 'error'); return s }
+  if (s.level < next.level) { toast(s, `Mk. ${next.tier} needs Rank ${next.rank}: ${getFaction(s.factionId).ranks[next.rank - 1].title} (Level ${next.level}).`, 'error'); return s }
   if (s.gold < next.gold) { toast(s, `Requires ${next.gold} Gold Bars.`, 'error'); return s }
   s.gold -= next.gold
   s.sigTier++

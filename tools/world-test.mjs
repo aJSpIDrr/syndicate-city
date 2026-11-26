@@ -32,7 +32,7 @@ ok(r.status === 200 && r.state.city.zones.newyork.garrison < 100, `Bravo can att
 // HQ raids
 r = await call('GET', '/api/hq/targets', null, B)
 ok(r.targets.some((x) => x.username === 'alfa'), 'Alfa appears in Bravo\'s real HQ targets')
-let raids = 0; for (let i = 0; i < 3; i++) { r = await call('POST', '/api/hq/raid', { username: 'alfa' }, B); if (r.status === 200) raids++; else await act(B, 'devLevels', 1) }
+let raids = 0; for (let i = 0; i < 12 && raids < 3; i++) { r = await call('POST', '/api/hq/raid', { username: 'alfa' }, B); if (r.status === 200) raids++; else await act(B, 'devLevels', 1) }
 r = await call('POST', '/api/hq/raid', { username: 'alfa' }, B)
 ok(r.status === 400 && /3 times/.test(r.error), 'max 3 raids per target per day')
 const as = (await call('GET', '/api/state', null, A)).state
