@@ -2,6 +2,16 @@
 // players see a "What's New" popup once when the top entry's id changes.
 export const CHANGELOG = [
   {
+    id: '1.27',
+    date: '2026-11-26',
+    title: 'Sharper Art',
+    items: [
+      'New full-size city backgrounds for The Firm, the Yakuza Clan, the Triad Society, The Syndicate and the Sinaloa Cartel.',
+      'New, sharper portraits for all 10 Yakuza and all 10 Sinaloa ranks.',
+      'New wide pictures for all 5 HQ levels, from the Hideout Shack to the Syndicate Castle.',
+    ],
+  },
+  {
     id: '1.26',
     date: '2026-11-26',
     title: 'Weapon Follows Your Rank',
