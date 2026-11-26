@@ -9,6 +9,7 @@ export const CHANGELOG = [
       'New full-size city backgrounds for The Firm, the Yakuza Clan, the Triad Society, The Syndicate and the Sinaloa Cartel.',
       'New, sharper portraits for all 10 Yakuza and all 10 Sinaloa ranks.',
       'New wide pictures for all 5 HQ levels, from the Hideout Shack to the Syndicate Castle.',
+      'New painted header strips and faction picker cards, new crew portraits for every faction, a sharper logo, and new art for the Sinaloa AK-47 Mk. I–V.',
       'The Sinaloa Cartel\'s mentor is now called Don Aurelio.',
     ],
   },

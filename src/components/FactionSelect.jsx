@@ -35,10 +35,6 @@ export default function FactionSelect({ onStart, onRestore }) {
                 style={active ? { '--tw-ring-color': fac.accent, borderColor: fac.accent } : undefined}
               >
                 <FactionBanner factionId={fac.id} height={140}>
-                  {ASSET_MAP.factionGroups[fac.id] && (
-                    <img src={ASSET_MAP.factionGroups[fac.id]} alt="" className="absolute bottom-0 right-0 h-full w-auto object-cover"
-                      style={{ maskImage: 'linear-gradient(to right, transparent, #000 35%)', WebkitMaskImage: 'linear-gradient(to right, transparent, #000 35%)' }} />
-                  )}
                   <div className="relative flex h-full flex-col justify-end p-3 [text-shadow:0_2px_6px_#000]">
                     <div className="text-[11px] uppercase tracking-widest" style={{ color: fac.accent }}>{fac.city}</div>
                     <div className="font-display text-xl font-bold text-white">{fac.name}</div>
