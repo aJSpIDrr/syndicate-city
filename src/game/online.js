@@ -1,7 +1,7 @@
 // Talking to the online server. VITE_API_URL is set at build time (empty = offline game).
 // Fallback for the hosted copies (GitHub Pages / Render) if the build didn't get an address.
 const HOSTED = typeof location !== 'undefined' && /(\.github\.io|\.onrender\.com)$/.test(location.hostname)
-const DEFAULT_API = 'https://syndicate-city-api.onrender.com'
+const DEFAULT_API = 'https://syndicate-city-eu.onrender.com' // Frankfurt, next to the database
 export const API_URL = (import.meta.env.VITE_API_URL || (HOSTED ? DEFAULT_API : '')).trim().replace(/\/$/, '')
 export const ONLINE = !!API_URL
 const TOKEN_KEY = 'syndicate-city-token'
