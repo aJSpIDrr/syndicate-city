@@ -2,6 +2,15 @@
 // players see a "What's New" popup once when the top entry's id changes.
 export const CHANGELOG = [
   {
+    id: '1.25',
+    date: '2026-11-26',
+    title: 'Trophy Art',
+    items: [
+      'Every district boss trophy and every World Enemy trophy now has painted art, from Boss Tweed\'s Sword Cane to the Ghost Cartel Night Suit.',
+      'Every item in the game now has a painted picture.',
+    ],
+  },
+  {
     id: '1.24',
     date: '2026-11-26',
     title: 'Yakuza & Sinaloa Art',

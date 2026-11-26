@@ -51,6 +51,7 @@ const ITEM_ART = ['bat', 'bat_spiked', 'switchblade', 'revolver', 'shotgun', 'pi
   'crossbow', 'uzi', 'ak47', 'm4', 'chainsaw', 'flamethrower', 'lmg', 'militaryjacket', 'helmet', 'policevest', 'riothelmet', 'dragonjacket', 'swatvest',
   'suv', 'policecar', 'ambulance', 'sportscar', 'armoredtruck', 'firetruck', 'tank',
   'knuckles', 'molotov', 'riotshield', 'limodoor', 'nvg', 'x_machete', 'x_mink', 'x_limo',
+  't_cane', 't_bowler', 't_bentley', 't_tanto', 't_junk', 't_vest', 'w_blackhand', 'w_ironcrown', 'w_redlotus', 'w_ninedragons', 'w_goldreef', 'w_fantasmas',
   'x_tommy', 'x_rpg', 'x_tux', 'x_jugg', 'x_weave', 'x_roadster', 'x_yacht', 'x_jet', 'x_eagle', 't_hook', 't_gunship']
 for (const id of ITEM_ART) ASSET_MAP.items[id] = `./art/items/${id}.jpg`
 for (const id of ['cigarettes', 'alcohol', 'briefcase', 'plates', 'bullion', 'firearms', 'jewels', 'evidence']) ASSET_MAP.contraband[id] = `./art/items/c_${id}.jpg`
