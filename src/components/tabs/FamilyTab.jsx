@@ -1,3 +1,4 @@
+import { ASSET_MAP } from '../../assetMap'
 import { Lock, Swords, Shield, Heart, Zap, Grab, UserPlus } from 'lucide-react'
 import { getFaction, formatPerk, RANK_LEVELS, weaponName } from '../../data/factions'
 import { hireCost, spendSkill, hireCrew, money, fmt, MAX_FAMILY } from '../../game/engine'
@@ -45,6 +46,11 @@ export default function FamilyTab({ s, d, run }) {
               <Stat label="Mentor" value={f.mentor} />
             </div>
           </div>
+          {ASSET_MAP.factionGroups?.[s.factionId] && (
+            <div className="hidden w-44 shrink-0 overflow-hidden rounded-lg border-2 lg:block" style={{ borderColor: f.accent }} title={f.name}>
+              <img src={ASSET_MAP.factionGroups[s.factionId]} alt={f.name} className="block h-full w-full object-cover" />
+            </div>
+          )}
         </div>
       </Section>
 

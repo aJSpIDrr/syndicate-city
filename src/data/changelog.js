@@ -2,6 +2,16 @@
 // players see a "What's New" popup once when the top entry's id changes.
 export const CHANGELOG = [
   {
+    id: '1.22',
+    date: '2026-11-26',
+    title: 'New Faction Art',
+    items: [
+      'Every faction now has a painted crew portrait on the faction picker and in Boss & Ranks.',
+      'The Yakuza Katana and the Sinaloa AK-47 have painted art in the forge.',
+      'A new Syndicate City logo at the top of the game and on the log-in screen.',
+    ],
+  },
+  {
     id: '1.21',
     date: '2026-11-26',
     title: 'Clear a District to Move On',

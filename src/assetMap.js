@@ -59,6 +59,11 @@ for (const id of ['docks', 'midtown', 'eastend', 'downtown', 'shinjuku', 'kowloo
   ASSET_MAP.bosses[id] = `./art/people/boss_${id}.jpg`
 }
 for (const id of factionIds) ASSET_MAP.mentors[id] = `./art/people/mentor_${id}.jpg`
+// Faction group portraits and the Yakuza / Sinaloa signature weapons (public/art/factions/)
+ASSET_MAP.factionGroups = perFaction((id) => `./art/factions/group_${id}.jpg`)
+ASSET_MAP.signatureWeapons.yakuza = './art/factions/weapon_yakuza.jpg'
+ASSET_MAP.signatureWeapons.sinaloa = './art/factions/weapon_sinaloa.jpg'
+ASSET_MAP.logo = './art/logo.png'
 ASSET_MAP.worldLeaders = { goldreef: './art/people/world_goldreef.jpg', fantasmas: './art/people/world_fantasmas.jpg' }
 
 export const sigWeaponUrl = (factionId, tier) => ASSET_MAP.signatureWeaponTiers[factionId]?.[tier] || ASSET_MAP.signatureWeapons[factionId] || null

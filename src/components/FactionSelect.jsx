@@ -5,6 +5,7 @@ import FactionBanner from './FactionBanner'
 import Avatar from './Avatar'
 import { BackupPanel } from './Modals'
 import SignatureWeapon from '../art/SignatureWeapon'
+import { ASSET_MAP } from '../assetMap'
 
 export default function FactionSelect({ onStart, onRestore }) {
   const [showRestore, setShowRestore] = useState(false)
@@ -17,7 +18,7 @@ export default function FactionSelect({ onStart, onRestore }) {
       <div className="mx-auto max-w-6xl">
         <header className="mb-8 text-center">
           <div className="label mb-2 text-brass">A Global Underworld RPG</div>
-          <h1 className="font-display text-4xl font-extrabold tracking-wider sm:text-6xl gold-shine">SYNDICATE CITY</h1>
+          <h1><img src={ASSET_MAP.logo} alt="Syndicate City" className="mx-auto w-full max-w-[420px] drop-shadow-[0_6px_16px_rgba(0,0,0,.8)]" /></h1>
           {onRestore && <button className="mt-2 text-xs text-brass underline-offset-2 hover:underline" onClick={() => setShowRestore((v) => !v)}>Have a backup code? Restore your boss</button>}
           {showRestore && <div className="mx-auto mt-3 max-w-md text-left"><BackupPanel s={null} onRestore={onRestore} /></div>}
           <p className="mx-auto mt-3 max-w-xl text-stone-400">Choose your syndicate. Rise from street rookie to supreme boss. Every rank changes how you look and how you fight.</p>
@@ -33,8 +34,12 @@ export default function FactionSelect({ onStart, onRestore }) {
                 className={`panel group overflow-hidden text-left transition hover:-translate-y-0.5 ${active ? 'ring-2' : ''}`}
                 style={active ? { '--tw-ring-color': fac.accent, borderColor: fac.accent } : undefined}
               >
-                <FactionBanner factionId={fac.id} height={110}>
-                  <div className="flex h-full flex-col justify-end p-3">
+                <FactionBanner factionId={fac.id} height={140}>
+                  {ASSET_MAP.factionGroups[fac.id] && (
+                    <img src={ASSET_MAP.factionGroups[fac.id]} alt="" className="absolute bottom-0 right-0 h-full w-auto object-cover"
+                      style={{ maskImage: 'linear-gradient(to right, transparent, #000 35%)', WebkitMaskImage: 'linear-gradient(to right, transparent, #000 35%)' }} />
+                  )}
+                  <div className="relative flex h-full flex-col justify-end p-3 [text-shadow:0_2px_6px_#000]">
                     <div className="text-[11px] uppercase tracking-widest" style={{ color: fac.accent }}>{fac.city}</div>
                     <div className="font-display text-xl font-bold text-white">{fac.name}</div>
                   </div>

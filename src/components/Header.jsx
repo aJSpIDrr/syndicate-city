@@ -1,3 +1,4 @@
+import { ASSET_MAP } from '../assetMap'
 import { Banknote, Coins, Zap, Grab, Cross, Star, Landmark, Mail, Settings, Plus, Skull, ScrollText, Gift } from 'lucide-react'
 import { getFaction } from '../data/factions'
 import { xpForNext, fmt, money, cityRank, HOSPITAL_THRESHOLD, activeBoosts, worldTemplate } from '../game/engine'
@@ -40,7 +41,7 @@ export default function Header({ s, d, tab, setTab, onOpen, badges, newUpdate, o
       <div className="hidden sm:block">
         <FactionBanner factionId={s.factionId} height={76} header>
           <div className="mx-auto flex h-full max-w-[1000px] items-center gap-4 px-3">
-            <div className="font-display text-3xl font-extrabold tracking-[0.12em] gold-shine drop-shadow">SYNDICATE CITY</div>
+            <img src={ASSET_MAP.logo} alt="Syndicate City" className="h-14 w-auto drop-shadow-[0_3px_8px_rgba(0,0,0,.8)]" />
             <div className="hidden text-xs uppercase tracking-widest text-stone-300 md:block">{f.city} · {f.name}</div>
             <div className="ml-auto flex items-center gap-1">
               <div className="mr-1 flex items-center gap-1 rounded border border-gold/40 bg-black/50 px-2 py-1 text-sm font-bold text-gold" title="Global City Rank">
@@ -60,7 +61,7 @@ export default function Header({ s, d, tab, setTab, onOpen, badges, newUpdate, o
       <div className="flex items-center gap-2 border-b border-black px-2 py-1.5 sm:hidden" style={{ background: `linear-gradient(90deg, ${f.deep}, #0B0C0E)` }}>
         <button onClick={() => setTab('family')} aria-label="Open Boss & Ranks"><Avatar factionId={s.factionId} rank={d.rank} size={38} /></button>
         <div className="min-w-0 flex-1">
-          <div className="font-display text-sm font-extrabold tracking-widest gold-shine">SYNDICATE CITY</div>
+          <img src={ASSET_MAP.logo} alt="Syndicate City" className="h-5 w-auto" />
           <div className="truncate text-[11px] font-semibold" style={{ color: f.accent }}>{s.bossName} · {f.ranks[d.rank].title} · Lv {s.level}</div>
         </div>
         <div className="flex items-center gap-1 rounded border border-gold/40 bg-black/50 px-1.5 py-0.5 text-[11px] font-bold text-gold"><Star size={11} fill="#D4AF37" /> #{cityRank(s)}</div>

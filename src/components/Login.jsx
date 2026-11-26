@@ -1,3 +1,4 @@
+import { ASSET_MAP } from '../assetMap'
 import { useState } from 'react'
 import { LogIn, UserPlus, Mail, KeyRound } from 'lucide-react'
 
@@ -28,7 +29,7 @@ export default function Login({ onAuth, addEmail = false }) {
       <form onSubmit={submit} className="box w-full max-w-sm">
         <div className="box-head"><span>{titles[mode]}</span></div>
         <div className="space-y-3 p-4">
-          <div className="text-center font-display text-3xl font-extrabold tracking-widest gold-shine">SYNDICATE CITY</div>
+          <img src={ASSET_MAP.logo} alt="Syndicate City" className="mx-auto w-full max-w-[300px]" />
           {mode === 'login' && <p className="text-center text-[12px] text-stone-400">The city is online. Log in to play with other bosses.</p>}
           {mode === 'forgot' && <p className="text-center text-[12px] text-stone-400">Enter your account email and we'll send you a link to set a new password.</p>}
           {mode === 'reset' && <p className="text-center text-[12px] text-stone-400">Choose a new password for your account.</p>}
