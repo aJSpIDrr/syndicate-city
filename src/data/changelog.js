@@ -2,6 +2,17 @@
 // players see a "What's New" popup once when the top entry's id changes.
 export const CHANGELOG = [
   {
+    id: '1.24',
+    date: '2026-11-26',
+    title: 'Yakuza & Sinaloa Art',
+    items: [
+      'The Yakuza Clan and the Sinaloa Cartel now have painted portraits for all 10 ranks.',
+      'Their signature weapons have new art for every forge level: the Katana from Mk I to Mk X, and the AK-47 from Mk I to Mk X.',
+      'New art for Brass Knuckles, Molotov Cocktail, Riot Shield, Bulletproof Limo Door, Night Vision Goggles and three Gold Exclusives.',
+      'All six World Enemy leaders now have painted portraits.',
+    ],
+  },
+  {
     id: '1.23',
     date: '2026-11-26',
     title: 'Faster Online Play',

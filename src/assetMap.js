@@ -28,8 +28,8 @@ export const ASSET_MAP = {
 
 // Roster art cut from the Drive atlases (public/art/<faction>/rank-NN.jpg, weapon-NN.jpg)
 const fill = (faction, kind, slot) => { for (let i = 1; i <= 10; i++) slot[faction][i] = `./art/${faction}/${kind}-${String(i).padStart(2, '0')}.jpg` }
-for (const f of ['families', 'syndicate', 'firm', 'triad']) fill(f, 'rank', ASSET_MAP.rankAvatars)
-for (const f of ['families', 'syndicate', 'firm']) fill(f, 'weapon', ASSET_MAP.signatureWeaponTiers)
+for (const f of ['families', 'syndicate', 'firm', 'triad', 'yakuza', 'sinaloa']) fill(f, 'rank', ASSET_MAP.rankAvatars)
+for (const f of ['families', 'syndicate', 'firm', 'yakuza', 'sinaloa']) fill(f, 'weapon', ASSET_MAP.signatureWeaponTiers)
 fill('triad', 'blade', ASSET_MAP.signatureWeaponTiers) // cleaver Mk I–V, butterfly knife Mk VI–X
 
 // Backgrounds & scenes (public/art/scenes/)
@@ -50,6 +50,7 @@ const ITEM_ART = ['bat', 'bat_spiked', 'switchblade', 'revolver', 'shotgun', 'pi
   'modelt', 'pickup', 'motorcycle', 'musclecar', 'armoredsedan', 'hearse', 'speedboat', 'helicopter',
   'crossbow', 'uzi', 'ak47', 'm4', 'chainsaw', 'flamethrower', 'lmg', 'militaryjacket', 'helmet', 'policevest', 'riothelmet', 'dragonjacket', 'swatvest',
   'suv', 'policecar', 'ambulance', 'sportscar', 'armoredtruck', 'firetruck', 'tank',
+  'knuckles', 'molotov', 'riotshield', 'limodoor', 'nvg', 'x_machete', 'x_mink', 'x_limo',
   'x_tommy', 'x_rpg', 'x_tux', 'x_jugg', 'x_weave', 'x_roadster', 'x_yacht', 'x_jet', 'x_eagle', 't_hook', 't_gunship']
 for (const id of ITEM_ART) ASSET_MAP.items[id] = `./art/items/${id}.jpg`
 for (const id of ['cigarettes', 'alcohol', 'briefcase', 'plates', 'bullion', 'firearms', 'jewels']) ASSET_MAP.contraband[id] = `./art/items/c_${id}.jpg`
@@ -64,7 +65,7 @@ ASSET_MAP.factionGroups = perFaction((id) => `./art/factions/group_${id}.jpg`)
 ASSET_MAP.signatureWeapons.yakuza = './art/factions/weapon_yakuza.jpg'
 ASSET_MAP.signatureWeapons.sinaloa = './art/factions/weapon_sinaloa.jpg'
 ASSET_MAP.logo = './art/logo.png'
-ASSET_MAP.worldLeaders = { goldreef: './art/people/world_goldreef.jpg', fantasmas: './art/people/world_fantasmas.jpg' }
+ASSET_MAP.worldLeaders = Object.fromEntries(['blackhand', 'ironcrown', 'redlotus', 'ninedragons', 'goldreef', 'fantasmas'].map((id) => [id, `./art/people/world_${id}.jpg`]))
 
 export const sigWeaponUrl = (factionId, tier) => ASSET_MAP.signatureWeaponTiers[factionId]?.[tier] || ASSET_MAP.signatureWeapons[factionId] || null
 
