@@ -10,7 +10,9 @@ import { Section, Stat, Bar } from '../ui'
 import { ONLINE } from '../../game/online'
 import Avatar from '../Avatar'
 
-const emblem = (id) => (id === 'mafiahq' ? null : `./art/turf/${id}.jpg`)
+// Zone emblems in public/art/turf; zones without a picture show their name instead.
+const NO_EMBLEM = ['mafiahq', 'slums', 'prison']
+const emblem = (id) => (NO_EMBLEM.includes(id) ? null : `./art/turf/${id}.jpg`)
 
 export default function TurfTab({ s, d, run }) {
   const [sel, setSel] = useState('newyork')
@@ -68,7 +70,7 @@ export default function TurfTab({ s, d, run }) {
       <section className="box">
         <div className="flex flex-col gap-3 p-3 sm:flex-row">
           <div className="flex h-28 w-full shrink-0 items-center justify-center overflow-hidden rounded bg-black sm:w-40">
-            {emblem(z.id) ? <img src={emblem(z.id)} alt="" className="max-h-full max-w-full object-contain" /> : <div className="text-center"><Crown size={36} className="mx-auto text-gold" /><div className="font-display text-lg font-bold text-gold">MAFIA HQ</div></div>}
+            {emblem(z.id) ? <img src={emblem(z.id)} alt="" className="max-h-full max-w-full object-contain" /> : <div className="px-2 text-center"><Crown size={36} className="mx-auto text-gold" /><div className="font-display text-lg font-bold uppercase text-gold">{z.id === 'mafiahq' ? 'Mafia HQ' : z.name}</div></div>}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
