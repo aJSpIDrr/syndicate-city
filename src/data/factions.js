@@ -176,7 +176,7 @@ export const FACTIONS = [
     name: 'Sinaloa Cartel',
     subtitle: 'La Federación',
     city: 'Sinaloa, Mexico',
-    mentor: 'El Chapo',
+    mentor: 'Don Aurelio',
     vibe: 'Jungle airstrips, border tunnels, heavy military firepower, corrupt politicians, and massive cash flow.',
     deep: '#800F2F',
     accent: '#C89F65',

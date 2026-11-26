@@ -132,6 +132,8 @@ export function migrate(s) {
     DISTRICTS.forEach((d, i) => { if (i <= furthest) s.districtsOpen[d.id] = true })
   }
   ensureHq(s)
+  // The Sinaloa mentor was renamed (no real people's names): update old messages that mention the old name
+  if (s.log?.some((l) => l.text?.includes('El Chapo'))) s.log = s.log.map((l) => (l.text?.includes('El Chapo') ? { ...l, text: l.text.replaceAll('El Chapo', 'Don Aurelio') } : l))
   if ((s.sigV || 1) < 2) { // signature weapon tiers now follow faction rank: keep the same power, refund the difference
     if (s.sigTier > 1) {
       const old = OLD_SIG_TIERS[s.sigTier - 1]
